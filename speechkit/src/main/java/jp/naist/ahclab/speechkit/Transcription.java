@@ -16,6 +16,10 @@ public class Transcription {
         transcript = transcript+" "+text;
     }
 
+    public void replace_text(String text){
+        transcript = text;
+    }
+
     public String getTranscript(){
         return transcript;
     }

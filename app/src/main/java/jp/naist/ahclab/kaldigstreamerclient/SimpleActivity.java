@@ -1,4 +1,5 @@
 package jp.naist.ahclab.kaldigstreamerclient;
+import jp.naist.ahclab.speechkit.logs.MyLog;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -64,9 +65,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             }
         };
         lst_dialog.prepare(stop_listener);
-
     }
-
 
     @Override
     public void onPartialResult(String result) {
@@ -76,6 +75,12 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onFinalResult(String result) {
         ed_result.setText(result);
+        if (result.equals("next page")) {
+            MyLog.i("spotted next page");
+        }
+        if (result.equals("previous page")) {
+            MyLog.i("spotted previous page");
+        }
     }
 
     @Override

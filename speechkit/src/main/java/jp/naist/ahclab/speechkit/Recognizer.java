@@ -132,14 +132,16 @@ public class Recognizer implements RecorderListener{
 				
 				if (tmpResult == null){
 					recogListener.onError(new Exception(text));
-				}else
-                if (tmpResult.isFinal()) {
-                    transcription.add_text(tmpResult.getText());
+				}
+				else if (tmpResult.isFinal()) {
+                    //transcription.add_text(tmpResult.getText());
+                    transcription.replace_text(tmpResult.getText());
                     MyLog.i("Final: " + transcription.getTranscript());
                     recogListener.onFinalResult(transcription.getTranscript());
                 }
                 else {
-                    recogListener.onPartialResult(transcription.getTranscript()+" "+tmpResult.getText());
+                    //recogListener.onPartialResult(transcription.getTranscript()+" "+tmpResult.getText());
+                    recogListener.onPartialResult(tmpResult.getText());
                 }
             }
         };

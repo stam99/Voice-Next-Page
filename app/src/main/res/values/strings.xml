@@ -12,13 +12,18 @@
     <string name="pref_key_addr">key_addr</string>
     <string name="pref_key_port">key_port</string>
     <string name="pref_key_lang">key_lang</string>
-
+    <!--
     <string name="pref_sec1">Server infor</string>
-
     <string name="default_server_addr">bark.phon.ioc.ee</string>
     <string name="default_server_port">82</string>
     <string name="default_server_app_status">/dev/duplex-speech-api/ws/status</string>
     <string name="default_server_app_speech">/dev/duplex-speech-api/ws/speech</string>
+  -->
+  
+    <string name="default_server_addr">silvius-server.voxhub.io</string>
+    <string name="default_server_port">8018</string>
+    <string name="default_server_app_status">client/ws/status</string>
+    <string name="default_server_app_speech">client/ws/speech</string>
 
     <!--
     <string name="default_server_addr">163.221.94.22</string>
