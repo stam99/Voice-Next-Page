@@ -5,6 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="txt_btn_start">Start</string>
+    <string name="txt_btn_fake">fake</string>
 
     <string name="setting_lang_title">Choose language</string>
 
@@ -21,7 +22,7 @@
   -->
   
     <string name="default_server_addr">silvius-server.voxhub.io</string>
-    <string name="default_server_port">8018</string>
+    <string name="default_server_port">8022</string>
     <string name="default_server_app_status">client/ws/status</string>
     <string name="default_server_app_speech">client/ws/speech</string>
 

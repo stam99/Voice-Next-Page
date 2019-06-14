@@ -1,1 +1,1 @@
-include ':app', ':speechkit'
+include ':app', ':speechkit', ':service'

@@ -1,0 +1,11 @@
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_description" 
+    android:accessibilityEventTypes="typeViewClicked"
+    android:accessibilityFlags="flagDefault"
+    android:accessibilityFeedbackType="feedbackSpoken"
+    android:notificationTimeout="100"
+    android:canRetrieveWindowContent="true"
+    android:settingsActivity="io.voxhub.accessibility.servicecode.MyAccessibilityService"
+    android:canPerformGestures="true"
+/>
+<!-- From: file:/home/serena/kaldi2/service/src/main/res/xml/accessibility_service_config.xml -->

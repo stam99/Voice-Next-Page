@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="accessibility_service_description">new one!!</string>
+
+    <!--
+    <string name="default_server_addr">163.221.94.22</string>
+    <string name="default_server_port">11507</string>
+    <string name="default_server_app_status">/ja/speech-api/ws/status</string>
+    <string name="default_server_app_speech">/ja/speech-api/ws//speech</string>
+-->
+</resources>

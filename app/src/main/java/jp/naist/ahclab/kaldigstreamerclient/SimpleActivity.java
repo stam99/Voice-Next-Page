@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewParent;
+import android.view.accessibility.AccessibilityManager; 
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -17,6 +19,17 @@ import jp.naist.ahclab.speechkit.SpeechKit;
 import jp.naist.ahclab.speechkit.view.ListeningDialog;
 
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager; 
+
 public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     final String TAG = "SimpleActivity";
@@ -24,6 +37,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private ListeningDialog lst_dialog;
     private Button btn_start;
     private EditText ed_result;
+    private Button btn_stop;
+    private Button btn_fake;
 
     protected ServerInfo serverInfo = new ServerInfo();
     Recognizer _currentRecognizer;
@@ -42,7 +57,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         lst_dialog = new ListeningDialog(SimpleActivity.this);
         btn_start = (Button)findViewById(R.id.btn_start);
         ed_result = (EditText)findViewById(R.id.ed_result);
-
+        btn_fake = (Button)findViewById(R.id.btn_fake);
+        btn_stop = (Button) this.findViewById(R.id.btn_listeningStop);
         serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
         serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
@@ -50,6 +66,10 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
         init_speechkit(serverInfo);
 
+        btn_fake.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { }
+        });
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -64,6 +84,13 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                 _currentRecognizer.stopRecording();
             }
         };
+        // Stops recording once dialog goes away
+        lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                _currentRecognizer.stopRecording();
+            }
+        });    
         lst_dialog.prepare(stop_listener);
     }
 
@@ -75,11 +102,38 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onFinalResult(String result) {
         ed_result.setText(result);
-        if (result.equals("next page")) {
-            MyLog.i("spotted next page");
+        View view = btn_fake;
+        //AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_CLICKED);
+        AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+        if (result.equals("next page") && manager.isEnabled()) {
+           /* AccessibilityEvent event = AccessibilityEvent.obtain();
+            MyLog.i("accessibilityservice spotted next page"); 
+            event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+            event.setClassName(getClass().getName());
+            event.getText().clear();
+            event.getText().add("next");
+            manager.sendAccessibilityEvent(event);
+            MyLog.i("accessibilityservice sent next page"); */
+            AccessibilityEvent event = AccessibilityEvent.obtain();
+            view.onInitializeAccessibilityEvent(event);
+            MyLog.i("accessibilityservice spotted next page"); 
+            event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
+           // event.setClassName(getClass().getName());
+            event.getText().clear();
+            event.getText().add("next");
+            view.getParent().requestSendAccessibilityEvent(view, event);
+            MyLog.i("accessibilityservice sent next page");
         }
-        if (result.equals("previous page")) {
-            MyLog.i("spotted previous page");
+        if (result.equals("previous page") && manager.isEnabled()) {
+            AccessibilityEvent event = AccessibilityEvent.obtain();
+            MyLog.i("accessibilityservice spotted previous page"); 
+            event.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+            event.setClassName(getClass().getName());
+            event.getText().clear();
+            event.getText().add("previous");
+            manager.sendAccessibilityEvent(event);
+            MyLog.i("accessibilityservice sent previous page");
         }
     }
 
