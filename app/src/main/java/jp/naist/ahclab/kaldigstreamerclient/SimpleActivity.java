@@ -100,7 +100,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
         event.setClassName(getClass().getName());
         event.setPackageName(this.getPackageName());
-       // event.setSource(view);
         event.setEnabled(true);
         event.getText().clear();
         event.getText().add(string);
@@ -156,6 +155,16 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             sendAccessibilityEvent("center");
             MyLog.i("SimpleActivity sent center");
         }
+        if (canonical.equals("stop")) {
+            MyLog.i("SimpleActivity spotted stop");
+            _currentRecognizer.stopRecording();
+            MyLog.i("SimpleActivity stopped listening ");
+        }
+        if (canonical.equals("next three")) {
+            MyLog.i("SimpleActivity spotted next three");
+            sendAccessibilityEvent("next three");
+            MyLog.i("SimpleActivity sent next three");
+        } 
     }
 
     @Override

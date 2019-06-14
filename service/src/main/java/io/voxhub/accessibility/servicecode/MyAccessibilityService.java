@@ -34,6 +34,7 @@ public class MyAccessibilityService extends AccessibilityService {
         GESTURE_TAP_LEFT_SIDE,
         GESTURE_TAP_RIGHT_SIDE,
         GESTURE_TAP_CENTER,
+        GESTURE_TAP_RIGHT_THREE,
     }
 
     private void doGesture(GestureType type) {
@@ -52,24 +53,37 @@ public class MyAccessibilityService extends AccessibilityService {
         switch(type) {
         case GESTURE_TAP_LEFT_SIDE: 
             path.moveTo(leftX, midY);
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(
+                path, 0, GESTURE_DURATION));
             Log.i("accessibilityservice", "gesture: tap left side");
             break;
         case GESTURE_TAP_RIGHT_SIDE: 
             path.moveTo(rightX, midY);
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(
+                path, 0, GESTURE_DURATION));
             Log.i("accessibilityservice", "gesture: tap right side");
             break;
         case GESTURE_TAP_CENTER:
             path.moveTo(midX, midY);
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(
+                path, 0, GESTURE_DURATION));
             Log.i("accessibilityservice", "gesture: tap center");
             break; 
+   /*     case GESTURE_TAP_RIGHT_THREE: //fix implementation
+            path.moveTo(rightX, midY);
+            GestureDescription.StrokeDescription stroke = new GestureDescription.StrokeDescription(
+                path, 0, GESTURE_DURATION);
+            stroke.continueStroke(path, 0, GESTURE_DURATION, true); // continue stroke DNE?
+            stroke.continueStroke(path, 0, GESTURE_DURATION, false);
+            gestureBuilder.addStroke(stroke); // last boolean is willContinue
+            break;
+            Log.i("accessibilityservice", "gesture: tap right three"); */
         default:
             Log.i("accessibilityservice", "gesture: unsupported gesture");
             return;
         } 
 
         Log.d("accessibilityservice", "gesture started");
-        gestureBuilder.addStroke(new GestureDescription.StrokeDescription(
-            path, 0, GESTURE_DURATION));
         dispatchGesture(gestureBuilder.build(), new GestureResultCallback() {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
@@ -95,7 +109,10 @@ public class MyAccessibilityService extends AccessibilityService {
             }
             else if(text.equals("center")) {
                 doGesture(GestureType.GESTURE_TAP_CENTER);
-            } 
+            }
+            else if(text.equals("next three")) {
+                doGesture(GestureType.GESTURE_TAP_RIGHT_THREE);
+            }
         }
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.i("accessibilityservice", "got click event");
