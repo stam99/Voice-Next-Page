@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewParent;
-import android.view.accessibility.AccessibilityManager; 
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -18,6 +18,8 @@ import jp.naist.ahclab.speechkit.ServerInfo;
 import jp.naist.ahclab.speechkit.SpeechKit;
 import jp.naist.ahclab.speechkit.view.ListeningDialog;
 
+import java.util.List;
+import java.util.ArrayList;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
@@ -28,7 +30,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager; 
+import android.view.accessibility.AccessibilityManager;
 
 public class SimpleActivity extends Activity implements Recognizer.Listener{
 
@@ -66,12 +68,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
         init_speechkit(serverInfo);
 
-        btn_fake.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendAccessibilityEvent("fake button");
-            }
-        });
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,7 +88,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             public void onDismiss(DialogInterface dialog) {
                 _currentRecognizer.stopRecording();
             }
-        });    
+        });
         lst_dialog.prepare(stop_listener);
     }
 
@@ -101,58 +97,66 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         ed_result.setText(result);
     }
 
-    public void sendAccessibilityEvent(String string) { 
+    public void sendAccessibilityEvent(String string) {
+        //AccessibilityManager manager
+        //    = (AccessibilityManager)btn_fake.getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         View view = btn_fake;
-        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_CLICKED);
-        AccessibilityManager manager
-            = (AccessibilityManager)btn_fake.getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-       // MyLog.i("accessibilityservice spotted next page"); 
-       // event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
+        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        //event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
         event.setClassName(getClass().getName());
-        event.setSource(btn_fake);
+        event.setPackageName(this.getPackageName());
+        event.setSource(view);
         event.setEnabled(true);
         event.getText().clear();
         event.getText().add(string);
-        event.setPackageName(this.getPackageName());
-        MyLog.i("accessibilityservice event: " + event.toString()); 
+        event.getText().add(":");
+        //MyLog.i("SimpleActivity event: " + event.toString());
+        if(dispatchPopulateAccessibilityEvent(event)) {
+            MyLog.i("SimpleActivity dispatchPopulateAccessibilityEvent says OK");
+        }
+        else {
+            MyLog.i("SimpleActivity dispatchPopulateAccessibilityEvent says ???");
+        }
         manager.sendAccessibilityEvent(event);
-        MyLog.i("accessibilityservice sent accessibility event"); 
-        MyLog.i("accessibilityservice event after: " + event.toString()); 
+        MyLog.i("SimpleActivity sent accessibility event");
     }
+
+    String filterText(String input) {
+        String[] words = input.split(" ");
+        ArrayList<String> result = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+        for(String word : words) {
+            if(word.charAt(0) == '[' && word.charAt(word.length()-1) == ']') continue;
+            if(word.charAt(0) == '<' && word.charAt(word.length()-1) == '>') continue;
+            if(sb.length() > 0) sb.append(" ");
+            sb.append(word);
+        }
+        return sb.toString();
+    }
+
     @Override
     public void onFinalResult(String result) {
-        ed_result.setText(result);
-       // View view = btn_fake;
-        //AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_CLICKED);
+        ed_result.setText(result + ".");
         AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
-        sendAccessibilityEvent("test");
+        //sendAccessibilityEvent("test");
 
-        if (result.equals("next page") && manager.isEnabled()) {
-            //sendAccessibilityEvent();
-    /*        AccessibilityEvent event = AccessibilityEvent.obtain();
-            view.onInitializeAccessibilityEvent(event);
-            MyLog.i("accessibilityservice spotted next page"); 
-            event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
-           // event.setClassName(getClass().getName());
-            event.getText().clear();
-            event.getText().add("next");
-            view.getParent().requestSendAccessibilityEvent(view, event);
-            MyLog.i("accessibilityservice sent next page");*/
-            MyLog.i("accessibilityservice spotted next page"); 
-            sendAccessibilityEvent("next");
-            MyLog.i("accessibilityservice sent next page");
+        if(!manager.isEnabled()) {
+            MyLog.i("SimpleActivity manager not enabled");
+            return;
         }
-        if (result.equals("previous page") && manager.isEnabled()) {
-            AccessibilityEvent event = AccessibilityEvent.obtain();
-            MyLog.i("accessibilityservice spotted previous page"); 
-            event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
-            event.setClassName(getClass().getName());
-            event.getText().clear();
-            event.getText().add("previous");
-            MyLog.i("accessibilityservice event: " + event.toString());
-            manager.sendAccessibilityEvent(event);
-            MyLog.i("accessibilityservice sent previous page");
-            MyLog.i("accessibilityservice event after: " + event.toString());
+
+        String canonical = filterText(result);
+
+        if (canonical.equals("next page")) {
+            MyLog.i("SimpleActivity spotted next page");
+            sendAccessibilityEvent("next");
+            MyLog.i("SimpleActivity sent next page");
+        }
+        if (canonical.equals("previous page")) {
+            MyLog.i("SimpleActivity spotted previous page");
+            sendAccessibilityEvent("previous");
+            MyLog.i("SimpleActivity sent previous page");
         }
     }
 

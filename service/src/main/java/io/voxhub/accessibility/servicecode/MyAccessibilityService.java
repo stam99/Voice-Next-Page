@@ -6,7 +6,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.view.accessibility.AccessibilityEvent;
 import android.util.DisplayMetrics;
 import android.accessibilityservice.GestureDescription;
-import android.graphics.Path; 
+import android.graphics.Path;
 
 public class MyAccessibilityService extends AccessibilityService {
     public MyAccessibilityService() {
@@ -17,61 +17,82 @@ public class MyAccessibilityService extends AccessibilityService {
     public void onServiceConnected() {
         Log.i("accessibilityservice", "service connected");
     }
+
+    private String getTextFor(AccessibilityEvent event) {
+        StringBuilder sb = new StringBuilder();
+        for (CharSequence ch : event.getText()) {
+            sb.append(ch.toString());
+        }
+
+        String text = sb.toString();
+        Log.d("accessibilityservice", "split event text ["
+            + text + "] -> [" + text.split(":")[0] + "]");
+        return text.split(":")[0];
+    }
+
+    private enum GestureType {
+        GESTURE_TAP_LEFT_SIDE,
+        GESTURE_TAP_RIGHT_SIDE,
+    }
+
+    private void doGesture(GestureType type) {
+        final DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        final int BORDER = 10;
+        final int leftX = BORDER;
+        final int midX = displayMetrics.widthPixels / 2;
+        final int rightX = displayMetrics.widthPixels - BORDER;
+        final int topY = displayMetrics.heightPixels / 4;
+        final int midY = displayMetrics.heightPixels / 2;
+        final int botY = displayMetrics.heightPixels - BORDER;
+        final int GESTURE_DURATION = 100;
+
+        GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
+        Path path = new Path();
+        switch(type) {
+        case GESTURE_TAP_LEFT_SIDE: 
+            path.moveTo(leftX, midY);
+            Log.i("accessibilityservice", "gesture: tap left side");
+            break;
+        case GESTURE_TAP_RIGHT_SIDE: 
+            path.moveTo(rightX, midY);
+            Log.i("accessibilityservice", "gesture: tap right side");
+            break;
+        default:
+            Log.i("accessibilityservice", "gesture: unsupported gesture");
+            return;
+        } 
+
+        Log.d("accessibilityservice", "gesture started");
+        gestureBuilder.addStroke(new GestureDescription.StrokeDescription(
+            path, 0, GESTURE_DURATION));
+        dispatchGesture(gestureBuilder.build(), new GestureResultCallback() {
+            @Override
+            public void onCompleted(GestureDescription gestureDescription) {
+                Log.d("accessibilityservice", "gesture completed");
+                super.onCompleted(gestureDescription);
+            }
+        }, null);
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.i("accessibilityservice", "entering onAccessibilityEvent");
-        Log.i("accessibilityservice", "got event: " + event.toString());
-        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+        Log.i("accessibilityservice", "onAccessibilityEvent called, event: " + event.toString());
+        if(event.getEventType() == AccessibilityEvent.TYPE_ANNOUNCEMENT) {
+            Log.i("accessibilityservice", "got announce");
+            String text = getTextFor(event);
+            Log.i("accessibilityservice", "announce event text is [" + text + "]");
+
+            if(text.equals("next")) {
+                doGesture(GestureType.GESTURE_TAP_RIGHT_SIDE);
+            }
+            else if(text.equals("previous")) {
+                doGesture(GestureType.GESTURE_TAP_LEFT_SIDE);
+            }
+        }
+        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.i("accessibilityservice", "got click event");
-           // AccessibilityNodeInfo currentNode = getRootInActiveWindow();
-        // if (event.getText().equals("next") -->
-           // currentNode.performAction(AccessibilityNodeInfo.ACTION_PAGE_RIGHT);
-           // currentNode.performAction(AccessibilityNodeInfo.ACTION_PAGE_LEFT);
-
-            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-
-            int middleYValue = 1000;//displayMetrics.heightPixels / 2;
-            final int leftSideOfScreen = 100;//displayMetrics.widthPixels / 4;
-            final int rightSizeOfScreen = 1000;//leftSideOfScreen * 3;
-            //final int leftSideOfScreen = 1;
-            //final int rightSizeOfScreen = displayMetrics.widthPixels - 2;
-            GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-            Path path = new Path();
-            
-            StringBuilder sb = new StringBuilder();
-            for (CharSequence ch : event.getText()) {
-                sb.append(ch.toString());
-            }
-
-            String text = sb.toString();
-            Log.i("accessibilityservice", "text is [" + text + "]");
-            if (text.equals("next")) {
-                //Swipe left
-                //path.moveTo(rightSizeOfScreen, middleYValue);
-                //path.lineTo(leftSideOfScreen, middleYValue);
-                path.moveTo(rightSizeOfScreen, middleYValue);
-                Log.i("accessibilityservice", "swiped left");
-            } 
-            else if (text.equals("previous")) {
-                 //Swipe right
-                //path.moveTo(leftSideOfScreen, middleYValue);
-                //path.lineTo(rightSizeOfScreen, middleYValue);
-                path.moveTo(leftSideOfScreen, middleYValue);
-                Log.i("accessibilityservice", "swiped right");
-            }
-            else {
-                return;
-            }
-            Log.w("accessibilityservice", "Gesture Started");
-            //gestureBuilder.addStroke(new GestureDescription.StrokeDescription(path, 0, 1000));
-            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(path, 0, 100));
-            dispatchGesture(gestureBuilder.build(), new GestureResultCallback() {
-                @Override
-                public void onCompleted(GestureDescription gestureDescription) {
-                    Log.w("accessibilityservice", "Gesture Completed");
-                    super.onCompleted(gestureDescription);
-                }
-            }, null);
+            String text = getTextFor(event);
+            Log.i("accessibilityservice", "click event text is [" + text + "]");
         }
     }
     @Override
