@@ -40,7 +40,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private Button btn_start;
     private EditText ed_result;
     private Button btn_stop;
-    private Button btn_fake;
 
     protected ServerInfo serverInfo = new ServerInfo();
     Recognizer _currentRecognizer;
@@ -59,7 +58,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         lst_dialog = new ListeningDialog(SimpleActivity.this);
         btn_start = (Button)findViewById(R.id.btn_start);
         ed_result = (EditText)findViewById(R.id.ed_result);
-        btn_fake = (Button)findViewById(R.id.btn_fake);
         btn_stop = (Button) this.findViewById(R.id.btn_listeningStop);
         serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
@@ -98,15 +96,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     }
 
     public void sendAccessibilityEvent(String string) {
-        //AccessibilityManager manager
-        //    = (AccessibilityManager)btn_fake.getContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
-        View view = btn_fake;
         AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-        //event.setEventType(AccessibilityEvent.TYPE_VIEW_CLICKED);
         event.setClassName(getClass().getName());
         event.setPackageName(this.getPackageName());
-        event.setSource(view);
+       // event.setSource(view);
         event.setEnabled(true);
         event.getText().clear();
         event.getText().add(string);
@@ -139,7 +133,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public void onFinalResult(String result) {
         ed_result.setText(result + ".");
         AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
-        //sendAccessibilityEvent("test");
 
         if(!manager.isEnabled()) {
             MyLog.i("SimpleActivity manager not enabled");
@@ -157,6 +150,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             MyLog.i("SimpleActivity spotted previous page");
             sendAccessibilityEvent("previous");
             MyLog.i("SimpleActivity sent previous page");
+        }
+        if (canonical.equals("center")) {
+            MyLog.i("SimpleActivity spotted center");
+            sendAccessibilityEvent("center");
+            MyLog.i("SimpleActivity sent center");
         }
     }
 

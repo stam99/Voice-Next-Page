@@ -33,6 +33,7 @@ public class MyAccessibilityService extends AccessibilityService {
     private enum GestureType {
         GESTURE_TAP_LEFT_SIDE,
         GESTURE_TAP_RIGHT_SIDE,
+        GESTURE_TAP_CENTER,
     }
 
     private void doGesture(GestureType type) {
@@ -57,6 +58,10 @@ public class MyAccessibilityService extends AccessibilityService {
             path.moveTo(rightX, midY);
             Log.i("accessibilityservice", "gesture: tap right side");
             break;
+        case GESTURE_TAP_CENTER:
+            path.moveTo(midX, midY);
+            Log.i("accessibilityservice", "gesture: tap center");
+            break; 
         default:
             Log.i("accessibilityservice", "gesture: unsupported gesture");
             return;
@@ -88,6 +93,9 @@ public class MyAccessibilityService extends AccessibilityService {
             else if(text.equals("previous")) {
                 doGesture(GestureType.GESTURE_TAP_LEFT_SIDE);
             }
+            else if(text.equals("center")) {
+                doGesture(GestureType.GESTURE_TAP_CENTER);
+            } 
         }
         if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.i("accessibilityservice", "got click event");
