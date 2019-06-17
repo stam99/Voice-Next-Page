@@ -25,12 +25,18 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.PixelFormat;
 import android.provider.Settings;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class SimpleActivity extends Activity implements Recognizer.Listener{
 
@@ -40,6 +46,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private Button btn_start;
     private EditText ed_result;
     private Button btn_stop;
+  
+    private Overlay overlay = null;
 
     protected ServerInfo serverInfo = new ServerInfo();
     Recognizer _currentRecognizer;
@@ -81,18 +89,20 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             }
         };
         // Stops recording once dialog goes away
-        lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+       /* lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 _currentRecognizer.stopRecording();
             }
-        });
+        });*/
         lst_dialog.prepare(stop_listener);
+        if(overlay == null) overlay = new Overlay(this);
     }
 
     @Override
     public void onPartialResult(String result) {
         ed_result.setText(result);
+        overlay.setText(result);
     }
 
     public void sendAccessibilityEvent(String string) {
@@ -131,6 +141,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onFinalResult(String result) {
         ed_result.setText(result + ".");
+        overlay.setText(result + ".");
         AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
 
         if(!manager.isEnabled()) {
@@ -155,10 +166,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             sendAccessibilityEvent("center");
             MyLog.i("SimpleActivity sent center");
         }
-        if (canonical.equals("stop")) {
-            MyLog.i("SimpleActivity spotted stop");
+        if (canonical.equals("stop listening")) {
+            MyLog.i("SimpleActivity spotted stop listening");
+            overlay.destroy();
             _currentRecognizer.stopRecording();
-            MyLog.i("SimpleActivity stopped listening ");
+            MyLog.i("SimpleActivity stopped listening");
         }
         if (canonical.equals("next three")) {
             MyLog.i("SimpleActivity spotted next three");
