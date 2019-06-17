@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
+import android.content.Intent;
 import android.content.DialogInterface;
 import android.graphics.PixelFormat;
 import android.provider.Settings;
 import android.graphics.Color;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
@@ -42,7 +44,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     final String TAG = "SimpleActivity";
 
-    private ListeningDialog lst_dialog;
+    private AccessibilityManager manager;
+
     private Button btn_start;
     private EditText ed_result;
     private Button btn_stop;
@@ -60,13 +63,13 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
 
-        lst_dialog = new ListeningDialog(SimpleActivity.this);
         btn_start = (Button)findViewById(R.id.btn_start);
         ed_result = (EditText)findViewById(R.id.ed_result);
-        btn_stop = (Button) this.findViewById(R.id.btn_listeningStop);
+        btn_stop = (Button) this.findViewById(R.id.btn_stop);
         serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
         serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
@@ -74,28 +77,40 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
         init_speechkit(serverInfo);
 
+//        btn_start.setText(manager.isEnabled() ? "Start listening" : "Tap to start service...");
+
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                _currentRecognizer.start();
-                lst_dialog.show();
+                if(!manager.isEnabled()) {
+                    Intent callAccessibilitySettingIntent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                    startActivity(callAccessibilitySettingIntent);
+                }
+                else {
+                    _currentRecognizer.start();
+                    overlay.show();
+                }
             }
         });
-
+        
         Button.OnClickListener stop_listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 _currentRecognizer.stopRecording();
             }
         };
-        // Stops recording once dialog goes away
-       /* lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        btn_stop.setOnClickListener(stop_listener);
+
+        /* Stops recording once dialog goes away
+        lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 _currentRecognizer.stopRecording();
             }
         });*/
-        lst_dialog.prepare(stop_listener);
+        
+        // Open accessibility service
+
         if(overlay == null) overlay = new Overlay(this);
     }
 
@@ -106,7 +121,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     }
 
     public void sendAccessibilityEvent(String string) {
-        AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
         event.setClassName(getClass().getName());
         event.setPackageName(this.getPackageName());
@@ -142,14 +156,16 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public void onFinalResult(String result) {
         ed_result.setText(result + ".");
         overlay.setText(result + ".");
-        AccessibilityManager manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
 
         if(!manager.isEnabled()) {
+            ed_result.setText(result + "...[service not running]");
+
             MyLog.i("SimpleActivity manager not enabled");
             return;
         }
-
+    
         String canonical = filterText(result);
+        MyLog.i("SimpleActivity recognized [" + canonical + "]");
 
         if (canonical.equals("next page")) {
             MyLog.i("SimpleActivity spotted next page");
@@ -166,23 +182,24 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             sendAccessibilityEvent("center");
             MyLog.i("SimpleActivity sent center");
         }
+        if (canonical.equals("three")) {
+            MyLog.i("SimpleActivity spotted ");
+            overlay.hide();
+            MyLog.i("SimpleActivity paused listening");
+        }
         if (canonical.equals("stop listening")) {
             MyLog.i("SimpleActivity spotted stop listening");
-            overlay.destroy();
+            //onFinish("stop command called");
+            overlay.hide();
             _currentRecognizer.stopRecording();
-            MyLog.i("SimpleActivity stopped listening");
         }
-        if (canonical.equals("next three")) {
-            MyLog.i("SimpleActivity spotted next three");
-            sendAccessibilityEvent("next three");
-            MyLog.i("SimpleActivity sent next three");
-        } 
     }
 
     @Override
     public void onFinish(String reason) {
-        if (lst_dialog.isShowing())
-            lst_dialog.dismiss();
+        //overlay.destroy(); 
+        _currentRecognizer.stopRecording();
+        MyLog.i("SimpleActivity stopped listening");
     }
 
     @Override
@@ -204,17 +221,15 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     public void onRecordingBegin() {
-        lst_dialog.setText("Listening");
+        ed_result.setText("");        
     }
 
     @Override
     public void onRecordingDone() {
-        lst_dialog.setText("Please wait!");
     }
 
     @Override
     public void onError(Exception error) {
 
     }
-
 }

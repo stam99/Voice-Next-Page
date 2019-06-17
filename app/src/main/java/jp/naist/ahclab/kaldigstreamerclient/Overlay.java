@@ -14,11 +14,14 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.app.Activity;
+import android.os.Handler;
 
 public class Overlay {
     private TextView tv;
     private LinearLayout ll;
     private WindowManager windowManager;
+    private Handler handler;
+    private Runnable hideCallback;
 
     public Overlay(Activity act) {
         int statusBarHeight = 0;
@@ -43,15 +46,31 @@ public class Overlay {
         tv.setLayoutParams(tvParameters);
         tv.setTextColor(Color.WHITE);
         tv.setGravity(Gravity.CENTER);
-        tv.setText("Initializing ...");
         ll.addView(tv);
 
         windowManager = (WindowManager) act.getSystemService(act.WINDOW_SERVICE);
         windowManager.addView(ll, parameters);
+
+        handler = new Handler();
+        hideCallback = new Runnable() {
+            @Override
+            public void run() {
+                ll.setVisibility(View.INVISIBLE);
+                tv.setVisibility(View.INVISIBLE);
+            }
+        };
+        hideCallback.run();
     }
 
-    public void destroy() {
-        windowManager.removeViewImmediate(ll);
+    public void show() {
+        handler.removeCallbacks(hideCallback);
+        ll.setVisibility(View.VISIBLE);
+        tv.setVisibility(View.VISIBLE);
+    }
+
+    public void hide() {
+        handler.postDelayed(hideCallback, 1000);
+       // windowManager.removeView(ll);
     }
     
     public void setText(String result) {
