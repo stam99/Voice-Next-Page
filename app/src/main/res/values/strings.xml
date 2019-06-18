@@ -6,7 +6,11 @@
     <string name="action_settings">Settings</string>
     <string name="txt_btn_start">Start</string>
     <string name="txt_btn_stop">Stop</string>
-
+    <string name="txt_btn_back">Back</string>
+    <string name="txt_btn_setting">Settings</string>
+    <string name="txt_hoverText">Hover Text</string>
+    <string name="txt_btn_enable">Enable Accessibility Service</string>
+    
     <string name="setting_lang_title">Choose language</string>
 
 

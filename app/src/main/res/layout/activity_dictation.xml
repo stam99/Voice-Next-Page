@@ -3,14 +3,30 @@
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".DictationActivity">
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".SimpleActivity">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_setting"
+        android:enabled="true"
+        android:text="@string/txt_btn_setting"/>
+    
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_enable"
+        android:enabled="true"
+        android:text="@string/txt_btn_enable"
+        android:layout_below="@+id/btn_setting"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btn_start"
         android:enabled="false"
-        android:text="@string/txt_btn_start"/>
+        android:text="@string/txt_btn_start"
+        android:layout_below="@+id/btn_enable"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -20,10 +36,28 @@
         android:text="@string/txt_btn_stop"
         android:layout_below="@+id/btn_start"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_stop"
+        android:enabled="true"
+        android:text="@string/txt_btn_stop"
+        android:layout_below="@+id/btn_start"/>
+
+
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="[transcripts]"
         android:id="@+id/ed_result"
         android:layout_below="@+id/btn_stop"/>
+
+    <ProgressBar
+        android:id="@+id/progress_listening"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:visibility="invisible"
+        android:layout_toRightOf="@+id/btn_stop"></ProgressBar>
+
 </RelativeLayout>

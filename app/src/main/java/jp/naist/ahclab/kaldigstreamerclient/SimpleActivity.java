@@ -39,6 +39,7 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ProgressBar;
 
 public class SimpleActivity extends Activity implements Recognizer.Listener{
 
@@ -47,10 +48,13 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private AccessibilityManager manager;
 
     private Button btn_start;
-    private EditText ed_result;
+    private Button btn_setting;
     private Button btn_stop;
-  
+    private Button btn_enable;
+    private ProgressBar progress;
     private Overlay overlay = null;
+    private EditText ed_result;
+    private boolean requestListen = false;
 
     protected ServerInfo serverInfo = new ServerInfo();
     Recognizer _currentRecognizer;
@@ -68,8 +72,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         setContentView(R.layout.activity_dictation);
 
         btn_start = (Button)findViewById(R.id.btn_start);
-        ed_result = (EditText)findViewById(R.id.ed_result);
+        btn_setting = (Button)findViewById(R.id.btn_setting);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
+        btn_enable = (Button) this.findViewById(R.id.btn_enable);
+        progress = (ProgressBar)findViewById(R.id.progress_listening);
+        ed_result = (EditText)findViewById(R.id.ed_result);
         serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
         serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
@@ -79,28 +86,44 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
 //        btn_start.setText(manager.isEnabled() ? "Start listening" : "Tap to start service...");
 
+        btn_setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { // Open settings page
+                Intent intent = new Intent(SimpleActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+        // Button start
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!manager.isEnabled()) {
-                    Intent callAccessibilitySettingIntent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                    startActivity(callAccessibilitySettingIntent);
-                }
-                else {
-                    _currentRecognizer.start();
-                    overlay.show();
-                }
+                _currentRecognizer.start();
+                overlay.show();
+                progress.setVisibility(View.VISIBLE);
+                requestListen = true;
             }
         });
         
-        Button.OnClickListener stop_listener = new View.OnClickListener() {
+        btn_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 _currentRecognizer.stopRecording();
+                progress.setVisibility(View.INVISIBLE);
+                overlay.hide();
+                requestListen = false;
             }
-        };
-        btn_stop.setOnClickListener(stop_listener);
+        });
+        
+        btn_enable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+            }
+        });
 
+        btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
+        
         /* Stops recording once dialog goes away
         lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -110,7 +133,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         });*/
         
         // Open accessibility service
-
+        overlay = Overlay.getInstance();
         if(overlay == null) overlay = new Overlay(this);
     }
 
@@ -157,7 +180,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         ed_result.setText(result + ".");
         overlay.setText(result + ".");
 
-        if(!manager.isEnabled()) {
+        if(!manager.isEnabled()) { // This will never be called bc start button
             ed_result.setText(result + "...[service not running]");
 
             MyLog.i("SimpleActivity manager not enabled");
@@ -182,7 +205,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             sendAccessibilityEvent("center");
             MyLog.i("SimpleActivity sent center");
         }
-        if (canonical.equals("three")) {
+        if (canonical.equals("unknowncommande")) {
             MyLog.i("SimpleActivity spotted ");
             overlay.hide();
             MyLog.i("SimpleActivity paused listening");
@@ -191,7 +214,9 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             MyLog.i("SimpleActivity spotted stop listening");
             //onFinish("stop command called");
             overlay.hide();
+            progress.setVisibility(View.INVISIBLE);
             _currentRecognizer.stopRecording();
+            requestListen = false;
         }
     }
 
@@ -216,7 +241,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     public void onUpdateStatus(SpeechKit.Status status) {
-
+        Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
+                Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -226,10 +252,19 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     public void onRecordingDone() {
+        if (requestListen) {
+            _currentRecognizer.start();
+        }
     }
 
     @Override
     public void onError(Exception error) {
 
+    }
+
+    @Override
+    public void onResume() {
+        btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
+        super.onResume();
     }
 }

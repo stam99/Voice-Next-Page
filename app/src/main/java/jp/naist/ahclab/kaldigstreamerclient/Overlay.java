@@ -22,8 +22,11 @@ public class Overlay {
     private WindowManager windowManager;
     private Handler handler;
     private Runnable hideCallback;
+    private static Overlay overlay_instance;
+    private boolean visible = true;
 
     public Overlay(Activity act) {
+        overlay_instance = this;
         int statusBarHeight = 0;
         int resourceId = act.getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) statusBarHeight = act.getResources().getDimensionPixelSize(resourceId);
@@ -61,18 +64,32 @@ public class Overlay {
         };
         hideCallback.run();
     }
+    
+    public static Overlay getInstance() {
+        return overlay_instance;
+    }
 
     public void show() {
         handler.removeCallbacks(hideCallback);
         ll.setVisibility(View.VISIBLE);
         tv.setVisibility(View.VISIBLE);
+        visible = true;
     }
 
     public void hide() {
         handler.postDelayed(hideCallback, 1000);
-       // windowManager.removeView(ll);
+        visible = false;
+    // windowManager.removeView(ll);
     }
-    
+
+    public Overlay getOverlay() {
+        return this;
+    } 
+
+    public boolean isVisible() {
+        return visible;
+    }
+
     public void setText(String result) {
         tv.setText(result);
     }
