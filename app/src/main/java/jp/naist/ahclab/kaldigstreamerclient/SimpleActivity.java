@@ -97,20 +97,22 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestListen = true;
+                MyLog.i("Setting requestListen to " + requestListen);
                 _currentRecognizer.start();
                 overlay.show();
                 progress.setVisibility(View.VISIBLE);
-                requestListen = true;
             }
         });
         
         btn_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestListen = false;
+                MyLog.i("Setting requestListen to " + requestListen);
                 _currentRecognizer.stopRecording();
                 progress.setVisibility(View.INVISIBLE);
                 overlay.hide();
-                requestListen = false;
             }
         });
         
@@ -180,15 +182,25 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         ed_result.setText(result + ".");
         overlay.setText(result + ".");
 
+        String canonical = filterText(result);
+        MyLog.i("SimpleActivity recognized [" + canonical + "]");
+
+        if (canonical.equals("stop listening")) {
+            MyLog.i("SimpleActivity spotted stop listening");
+            //onFinish("stop command called");
+            overlay.hide();
+            progress.setVisibility(View.INVISIBLE);
+            _currentRecognizer.stopRecording();
+            requestListen = false;
+            MyLog.i("Setting requestListen to " + requestListen);
+        }
+
         if(!manager.isEnabled()) { // This will never be called bc start button
             ed_result.setText(result + "...[service not running]");
 
             MyLog.i("SimpleActivity manager not enabled");
             return;
         }
-    
-        String canonical = filterText(result);
-        MyLog.i("SimpleActivity recognized [" + canonical + "]");
 
         if (canonical.equals("next page")) {
             MyLog.i("SimpleActivity spotted next page");
@@ -209,14 +221,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             MyLog.i("SimpleActivity spotted ");
             overlay.hide();
             MyLog.i("SimpleActivity paused listening");
-        }
-        if (canonical.equals("stop listening")) {
-            MyLog.i("SimpleActivity spotted stop listening");
-            //onFinish("stop command called");
-            overlay.hide();
-            progress.setVisibility(View.INVISIBLE);
-            _currentRecognizer.stopRecording();
-            requestListen = false;
         }
     }
 
@@ -241,8 +245,9 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     public void onUpdateStatus(SpeechKit.Status status) {
-        Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
-                Toast.LENGTH_SHORT).show();
+      /*  Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
+                Toast.LENGTH_SHORT).show();*/
+        MyLog.i("SimpleActivity has new status: " + status.name());        
     }
 
     @Override
@@ -254,12 +259,24 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public void onRecordingDone() {
         if (requestListen) {
             _currentRecognizer.start();
+            MyLog.i("SimpleActivity restarted listening.");
         }
     }
 
     @Override
     public void onError(Exception error) {
-
+        Toast.makeText(getApplicationContext(),"Error: " + error,
+                Toast.LENGTH_SHORT).show();
+        MyLog.i("SimpleActivity has error: " + error);
+        
+        for (StackTraceElement e : error.getStackTrace()) {
+            MyLog.i("SimpleActivity stack trace: " + e.toString());
+        }    
+        _currentRecognizer.stopRecording();
+        if (requestListen) {
+            _currentRecognizer.start();
+            MyLog.i("SimpleActivity restarted listening.");
+        }
     }
 
     @Override

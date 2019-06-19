@@ -36,15 +36,6 @@
         android:text="@string/txt_btn_stop"
         android:layout_below="@+id/btn_start"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btn_stop"
-        android:enabled="true"
-        android:text="@string/txt_btn_stop"
-        android:layout_below="@+id/btn_start"/>
-
-
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
