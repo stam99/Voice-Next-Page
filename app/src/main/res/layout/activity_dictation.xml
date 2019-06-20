@@ -34,11 +34,13 @@
         android:id="@+id/btn_stop"
         android:enabled="true"
         android:text="@string/txt_btn_stop"
-        android:layout_below="@+id/btn_start"/>
+        android:layout_toRightOf="@+id/progress_listening"
+        android:layout_below="@+id/btn_enable"/>
 
     <EditText
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:maxLines="1"
         android:text="[transcripts]"
         android:id="@+id/ed_result"
         android:layout_below="@+id/btn_stop"/>
@@ -49,6 +51,15 @@
         android:layout_height="wrap_content"
         android:indeterminate="false"
         android:visibility="invisible"
-        android:layout_toRightOf="@+id/btn_stop"></ProgressBar>
+        android:layout_toRightOf="@+id/btn_start"
+        android:layout_below="@+id/btn_enable"></ProgressBar>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_about"
+        android:enabled="true"
+        android:text="@string/txt_btn_about"
+        android:layout_below="@+id/ed_result"/>
 
 </RelativeLayout>

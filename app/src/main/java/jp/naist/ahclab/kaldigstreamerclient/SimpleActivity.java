@@ -51,12 +51,13 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private Button btn_setting;
     private Button btn_stop;
     private Button btn_enable;
+    private Button btn_about;
     private ProgressBar progress;
     private Overlay overlay = null;
     private EditText ed_result;
     private boolean requestListen = false;
 
-    protected ServerInfo serverInfo = new ServerInfo();
+    private static ServerInfo serverInfo = new ServerInfo();
     Recognizer _currentRecognizer;
 
     void init_speechkit(ServerInfo serverInfo){
@@ -75,6 +76,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         btn_setting = (Button)findViewById(R.id.btn_setting);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
+        btn_about = (Button) this.findViewById(R.id.btn_about);
         progress = (ProgressBar)findViewById(R.id.progress_listening);
         ed_result = (EditText)findViewById(R.id.ed_result);
         serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
@@ -120,6 +122,14 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+            }
+        });
+        
+        btn_about.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { // Open about page
+                Intent intent = new Intent(SimpleActivity.this, AboutActivity.class);
                 startActivity(intent);
             }
         });
@@ -283,5 +293,9 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public void onResume() {
         btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
         super.onResume();
+    }
+    
+    public static ServerInfo getServerInfo() {
+        return serverInfo;
     }
 }
