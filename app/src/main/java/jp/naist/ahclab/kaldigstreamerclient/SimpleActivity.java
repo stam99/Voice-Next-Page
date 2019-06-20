@@ -58,7 +58,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     private boolean requestListen = false;
 
     private static ServerInfo serverInfo = new ServerInfo();
-    Recognizer _currentRecognizer;
+    private static Recognizer _currentRecognizer;
 
     void init_speechkit(ServerInfo serverInfo){
         SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);

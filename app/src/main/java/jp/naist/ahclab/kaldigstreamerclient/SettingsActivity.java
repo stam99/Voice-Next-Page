@@ -38,12 +38,29 @@ public class SettingsActivity extends Activity {
         server = (EditText) findViewById(R.id.server);
         port = (EditText) findViewById(R.id.port);
 
+        server.setOnFocusChangeListener(new EditText.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(!hasFocus) {
+                    SimpleActivity.getServerInfo().setAddr(server.getText().toString());
+                }
+            }
+        });
+        port.setOnFocusChangeListener(new EditText.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(!hasFocus) {
+                    SimpleActivity.getServerInfo().setAddr(port.getText().toString());
+                }
+            }
+        });
         reset_blurb = (TextView) findViewById(R.id.reset_blurb);
         reset_blurb.setText("Reset server and port\nto original values: ");
         btn_reset = (Button) findViewById(R.id.btn_reset);
         btn_reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { // Reset server/port 
+                Log.i("SettingsActivity", "reset button clicked");
                 server.setText("silvius-server.voxhub.io"); // Hard coded
                 port.setText("8022");
                 SimpleActivity.getServerInfo().setAddr(getResources().getString(R.string.default_server_addr));
