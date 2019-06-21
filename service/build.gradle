@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 28
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "io.voxhub.accessibility.servicecode"
         minSdkVersion 15
-        targetSdkVersion 25
-        versionCode 1
+        targetSdkVersion 26
+        versionCode 2
         versionName "1.0"
     }
     buildTypes {

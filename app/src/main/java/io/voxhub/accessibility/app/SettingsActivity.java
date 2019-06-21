@@ -1,4 +1,4 @@
-package jp.naist.ahclab.kaldigstreamerclient;
+package io.voxhub.accessibility.app;
 
 import android.app.Activity;
 import android.content.SharedPreferences;

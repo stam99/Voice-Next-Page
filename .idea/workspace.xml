@@ -3,8 +3,8 @@
   <component name="AndroidConfiguredLogFilters">
     <filters>
       <filter>
-        <option name="name" value="app: jp.naist.ahclab.kaldigstreamerclient" />
-        <option name="packageNamePattern" value="jp.naist.ahclab.kaldigstreamerclient" />
+        <option name="name" value="app: io.voxhub.accessibility.app" />
+        <option name="packageNamePattern" value="io.voxhub.accessibility.app" />
       </filter>
     </filters>
   </component>
@@ -14,7 +14,7 @@
     </shared>
   </component>
   <component name="AndroidLogFilters">
-    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="app: jp.naist.ahclab.kaldigstreamerclient" />
+    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="app: io.voxhub.accessibility.app" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="32089c36-cb45-41d4-a55e-9061c631d166" name="Default" comment="" />
@@ -50,7 +50,7 @@
         </entry>
       </file>
       <file leaf-file-name="SimpleActivity.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/jp/naist/ahclab/kaldigstreamerclient/SimpleActivity.java">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/io.voxhub.accessibility.app/SimpleActivity.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1875">
               <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
@@ -1283,7 +1283,7 @@
       <list>
         <option value="$PROJECT_DIR$/speechkit/src/main/java/jp/naist/ahclab/speechkit/Recognizer.java" />
         <option value="$PROJECT_DIR$/speechkit/build.gradle" />
-        <option value="$PROJECT_DIR$/app/src/main/java/jp/naist/ahclab/kaldigstreamerclient/SimpleActivity.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/io.voxhub.accessibility.app/SimpleActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/values/strings.xml" />
         <option value="$PROJECT_DIR$/app/.gitignore" />
         <option value="$PROJECT_DIR$/README.md" />
@@ -1683,7 +1683,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/jp/naist/ahclab/kaldigstreamerclient/SimpleActivity.java">
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/io.voxhub.accessibility.app/SimpleActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1020" max-vertical-offset="1875">
           <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
@@ -1798,7 +1798,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/jp/naist/ahclab/kaldigstreamerclient/DictationActivity.java">
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/io.voxhub.accessibility.app/DictationActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.12417219" vertical-offset="0" max-vertical-offset="765">
           <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
@@ -1826,7 +1826,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/jp/naist/ahclab/kaldigstreamerclient/SimpleActivity.java">
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/io.voxhub.accessibility.app/SimpleActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="180" max-vertical-offset="1440">
           <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />

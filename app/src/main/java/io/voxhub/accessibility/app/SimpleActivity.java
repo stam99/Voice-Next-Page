@@ -1,4 +1,4 @@
-package jp.naist.ahclab.kaldigstreamerclient;
+package io.voxhub.accessibility.app;
 import jp.naist.ahclab.speechkit.logs.MyLog;
 
 import android.app.Activity;
@@ -68,6 +68,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        MyLog.i("onCreate has been entered");
         manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
@@ -96,6 +97,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             }
         });
         // Button start
+        MyLog.i("onCreate - buttons made");
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,8 +136,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             }
         });
 
+        MyLog.i("onCreate - OnClickListeners are made");
+
         btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
-        
+  
+  //this one was already commented out *******_________dont uncomment_______*********
         /* Stops recording once dialog goes away
         lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
