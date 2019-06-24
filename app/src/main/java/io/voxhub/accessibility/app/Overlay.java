@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.provider.Settings;
 import android.graphics.Color;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
@@ -17,7 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.app.Activity;
 import android.os.Handler;
-import android.os.Build.VERSION;
+import android.os.Build;
 
 public class Overlay {
     private TextView tv;
@@ -27,33 +28,34 @@ public class Overlay {
     private Runnable hideCallback;
     private static Overlay overlay_instance;
     private boolean visible = true;
+    protected boolean overlayExists = false;
    // int LAYOUT_FLAG;
 
     public Overlay(Activity act) {
         Log.i("overlay" , "overlay constructor");
 
         //request permission at runtime
-        Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-        myIntent.setData(Uri.parse("package:" + getPackageName()));
-        startActivityForResult(myIntent, APP_PERMISSIONS);
+        //Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+        //myIntent.setData(Uri.parse("package:" + act.getPackageName()));
+        //startActivityForResult(myIntent, OVERLAY_PERMISSION_CODE);
 
         overlay_instance = this;
         int statusBarHeight = 0;
         int resourceId = act.getResources().getIdentifier("status_bar_height", "dimen", "android");
         if (resourceId > 0) statusBarHeight = act.getResources().getDimensionPixelSize(resourceId);
 
-       // int LAYOUT_FLAG;
-     //   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-       //      LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-      //  } else {
-      //       LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
-      //  }
+        int LAYOUT_FLAG;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+        }
 
         final WindowManager.LayoutParams parameters = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 statusBarHeight,
                 //WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,   // Allows the view to be on top of the StatusBar
-                WindowManager.LayoutParams.TYPE_PHONE,
+                LAYOUT_FLAG,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,    // Keeps the button presses from going to the background window and Draws over status bar
                 PixelFormat.TRANSLUCENT);
         parameters.gravity = Gravity.TOP | Gravity.CENTER;
@@ -103,7 +105,11 @@ public class Overlay {
 
     public Overlay getOverlay() {
         return this;
-    } 
+    }
+
+    public boolean getOverlayExists(){
+        return overlayExists;
+    }
 
     public boolean isVisible() {
         return visible;

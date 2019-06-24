@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.widget.Switch;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.EditText;
 
 public class SettingsActivity extends Activity {
@@ -67,21 +68,25 @@ public class SettingsActivity extends Activity {
                 SimpleActivity.getServerInfo().setPort(Integer.parseInt(getResources().getString(R.string.default_server_port)));
             }
         });
-        overlay = Overlay.getInstance();
         hoverText = (Switch) findViewById(R.id.hoverText);
-        hoverText.setChecked(overlay.isVisible());
         btn_back = (Button) findViewById(R.id.btn_back);
-        hoverText.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
-                if (bChecked) {
-                    overlay.show();
-                } 
-                else {
-                    overlay.hide();
+        if(overlay.getOverlayExists()){
+            overlay = Overlay.getInstance();
+            hoverText.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
+                    if (bChecked) {
+                        overlay.show();
+                    } 
+                    else {
+                        overlay.hide();
+                    }
                 }
-            }
-        });
+            });
+        }
+        else{
+            Toast.makeText(getApplicationContext(), "ACTION_MANAGE_OVERLAY_PERMISSION Permiss    ion Needed", Toast.LENGTH_SHORT).show();
+        }
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { // Open main page
