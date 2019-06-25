@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./gradlew assembleRelease
+./gradlew assembleRelease || exit
 cp ./app/build/outputs/apk/app-release-unsigned.apk ~/apk/
 cp ./service/build/outputs/apk/service-release-unsigned.apk ~/apk/
 

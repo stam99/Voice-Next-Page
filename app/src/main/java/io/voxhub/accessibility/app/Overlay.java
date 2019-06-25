@@ -28,7 +28,7 @@ public class Overlay {
     private Runnable hideCallback;
     private static Overlay overlay_instance;
     private boolean visible = true;
-    protected boolean overlayExists = false;
+//    protected boolean overlayExists = false;
    // int LAYOUT_FLAG;
 
     public Overlay(Activity act) {
@@ -107,8 +107,12 @@ public class Overlay {
         return this;
     }
 
-    public boolean getOverlayExists(){
-        return overlayExists;
+    public static boolean getOverlayExists(){
+        if(overlay_instance == null)
+            return false;
+        else
+            return true;
+//        return overlayExists;
     }
 
     public boolean isVisible() {

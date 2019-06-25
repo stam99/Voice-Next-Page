@@ -16,7 +16,8 @@
     <string name="contributors">Contributors</string>
     <string name="server_title">Server: </string>
     <string name="port_title">Port: </string>
-    
+    <string name="txt_btn_overlay">Enable Overlay Permissions</string>
+   
 
     <string name="setting_lang_title">Choose language</string>
 

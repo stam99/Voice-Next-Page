@@ -25,7 +25,7 @@ public class SettingsActivity extends Activity {
     private TextView reset_blurb;
     private Button btn_reset;
     private Switch hoverText;
-    private Overlay overlay;
+    private Overlay overlay = null;
     private Button btn_back;
 
     @Override
@@ -70,23 +70,22 @@ public class SettingsActivity extends Activity {
         });
         hoverText = (Switch) findViewById(R.id.hoverText);
         btn_back = (Button) findViewById(R.id.btn_back);
-        if(overlay.getOverlayExists()){
+        if(overlay.getOverlayExists())
             overlay = Overlay.getInstance();
-            hoverText.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
-                    if (bChecked) {
+        hoverText.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
+                if (bChecked) {
+                    if(overlay.getOverlayExists())
                         overlay.show();
-                    } 
-                    else {
+                } 
+                else {
+                    if(overlay.getOverlayExists())
                         overlay.hide();
-                    }
                 }
-            });
-        }
-        else{
-            Toast.makeText(getApplicationContext(), "ACTION_MANAGE_OVERLAY_PERMISSION Permiss    ion Needed", Toast.LENGTH_SHORT).show();
-        }
+            }
+        });
+       
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { // Open main page

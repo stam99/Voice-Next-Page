@@ -2,12 +2,14 @@ package jp.naist.ahclab.speechkit;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 public class PcmRecorder implements Runnable {
 	
 	private volatile boolean isRecording;
 	private final Object mutex = new Object();
 	public static final int frequency = 16000;
+//	public static final int frequency = 44100;
 	private static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 	private static final String TAG = "PcmRecorder";
 	int bufferRead = 0;
@@ -30,6 +32,7 @@ public class PcmRecorder implements Runnable {
 		recordInstance = new AudioRecord(
 				MediaRecorder.AudioSource.MIC, frequency,
 				AudioFormat.CHANNEL_IN_MONO, audioEncoding, bufferSize);
+        Log.i("PcmRecorder", "current state of AudioRecord: " + recordInstance.getState());
 		
 	
 	}
@@ -43,7 +46,23 @@ public class PcmRecorder implements Runnable {
 				}
 			}
 		}
-		recordInstance.startRecording();
+        Log.i("PcmRecorder", "AudioRecord State before record: " + recordInstance.getState());
+        boolean recording = false;
+		while(true){
+            try{
+                recordInstance.startRecording();
+                break;
+            }
+            catch(IllegalStateException e){
+                e.printStackTrace();
+                try{Thread.sleep(1000);}
+                catch(InterruptedException f){}
+               // throw new IllegalStateException("Sleep() intterupted!", e);
+            }
+ //           catch(IllegalStateException e){Thread.sleep(1000);throw new InterruptedException("sleep() interrupted!");}
+//            catch(InterruptedException f){throw new InterruptedException("sleep() interrupted!");}
+        }
+        Log.i("PcmRecorder", "AudioRecord State after record: " + recordInstance.getState());
 		while (this.isRecording) {
 			bufferRead = recordInstance.read(tempBuffer, 0, bufferSize);
 			

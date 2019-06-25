@@ -26,12 +26,16 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.provider.Settings;
 import android.graphics.Color;
+import android.Manifest;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat; 
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
@@ -71,6 +75,15 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         _currentRecognizer.connect();
     }
 
+    void requestMicPermissions(){
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.i("onCreate has been entered");
@@ -78,11 +91,13 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
 
+        requestMicPermissions();
+
         btn_start = (Button)findViewById(R.id.btn_start);
         btn_setting = (Button)findViewById(R.id.btn_setting);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
-        btn_overlay = (Button) this.findViewById(R.id.btn_overlay); //int the process of adding overlay permission settings button similar to the accessibility service enable button
+        btn_overlay = (Button) this.findViewById(R.id.btn_overlay); 
         btn_about = (Button) this.findViewById(R.id.btn_about);
         progress = (ProgressBar)findViewById(R.id.progress_listening);
         ed_result = (EditText)findViewById(R.id.ed_result);
@@ -110,7 +125,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                 requestListen = true;
                 MyLog.i("Setting requestListen to " + requestListen);
                 _currentRecognizer.start();
-                if (overlay.getOverlayExists())
+                if (Overlay.getOverlayExists())
                     overlay.show();
                 progress.setVisibility(View.VISIBLE);
             }
@@ -123,7 +138,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                 MyLog.i("Setting requestListen to " + requestListen);
                 _currentRecognizer.stopRecording();
                 progress.setVisibility(View.INVISIBLE);
-                if (overlay.getOverlayExists())
+                if (Overlay.getOverlayExists())
                     overlay.hide();
             }
         });
@@ -135,6 +150,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                 startActivity(intent);
             }
         });
+
         
         btn_about.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,8 +162,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
         MyLog.i("onCreate - OnClickListeners are made");
 
-        btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
-  
+        btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE); 
+
   //this one was already commented out *******_________dont uncomment_______*********
         /* Stops recording once dialog goes away
         lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -160,8 +176,14 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             if(!Settings.canDrawOverlays(this)){
                 askedForOverlayPermission = true;
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, 8888);
+                btn_overlay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                        startActivityForResult(intent, 8888);
+                    }
+                });
+                 btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.INVISIBLE : View.VISIBLE);
             }
         }
     }
@@ -170,14 +192,16 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 8888) {
-            askedForOverlayPermission = false;
-            if (Settings.canDrawOverlays(this)) {
-                overlay = Overlay.getInstance();
-                if(overlay == null) overlay = new Overlay(this);
-                overlay.overlayExists = true;
-            } else {
-                Toast.makeText(getApplicationContext(), "ACTION_MANAGE_OVERLAY_PERMISSION Permission Denied", Toast.LENGTH_SHORT).show();
-                overlay.overlayExists = false;
+            if(resultCode == RESULT_OK){
+                askedForOverlayPermission = false;
+                if (Settings.canDrawOverlays(this)) {
+                    overlay = Overlay.getInstance();
+                    if(overlay == null) overlay = new Overlay(this);
+                   // overlay.overlayExists = true;
+                } else {
+                    Toast.makeText(getApplicationContext(), "ACTION_MANAGE_OVERLAY_PERMISSION Permission Denied", Toast.LENGTH_SHORT).show();
+                   // overlay.overlayExists = false;
+                }
             }
         }
     }
@@ -185,7 +209,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onPartialResult(String result) {
         ed_result.setText(result);
-        if(overlay.getOverlayExists())
+        if(Overlay.getOverlayExists())
             overlay.setText(result);
     }
 
@@ -224,7 +248,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onFinalResult(String result) {
         ed_result.setText(result + ".");
-        if (overlay.getOverlayExists())
+        if (Overlay.getOverlayExists())
             overlay.setText(result + ".");
 
         String canonical = filterText(result);
@@ -233,7 +257,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         if (canonical.equals("stop listening")) {
             MyLog.i("SimpleActivity spotted stop listening");
             //onFinish("stop command called");
-            if (overlay.getOverlayExists())
+            if (Overlay.getOverlayExists())
                 overlay.hide();
             progress.setVisibility(View.INVISIBLE);
             _currentRecognizer.stopRecording();
@@ -265,7 +289,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         }
         if (canonical.equals("unknowncommande")) {
             MyLog.i("SimpleActivity spotted ");
-            if(overlay.getOverlayExists())
+            if(Overlay.getOverlayExists())
                 overlay.hide();
             MyLog.i("SimpleActivity paused listening");
         }
@@ -329,6 +353,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onResume() {
         btn_enable.setVisibility(manager.isEnabled() ? View.INVISIBLE : View.VISIBLE);
+        btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.INVISIBLE : View.VISIBLE);
+
         super.onResume();
     }
     
