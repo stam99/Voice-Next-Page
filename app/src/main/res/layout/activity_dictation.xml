@@ -22,12 +22,20 @@
         android:layout_centerHorizontal="true"/>
 
     <Button
+        android:id="@+id/btn_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:enabled="true"
+        android:text="@string/txt_btn_overlay"
+        android:layout_below="@+id/btn_enable"/>
+
+    <Button
         android:id="@+id/btn_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:enabled="false"
         android:text="@string/txt_btn_start"
-        android:layout_below="@+id/btn_enable"/>
+        android:layout_below="@+id/btn_overlay"/>
    
     <Button
         android:id="@+id/btn_stop"
@@ -36,7 +44,7 @@
         android:enabled="true"
         android:text="@string/txt_btn_stop"
         android:layout_toRightOf="@+id/progress_listening"
-        android:layout_below="@+id/btn_enable"/>
+        android:layout_below="@+id/btn_overlay"/>
 
     <EditText
         android:id="@+id/ed_result"
@@ -53,16 +61,7 @@
         android:indeterminate="false"
         android:visibility="invisible"
         android:layout_toRightOf="@+id/btn_start"
-        android:layout_below="@+id/btn_enable"></ProgressBar>
-
-    <Button
-        android:id="@+id/btn_overlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:enabled="true"
-        android:text="@string/txt_btn_overlay"
-        android:layout_below="@+id/ed_result"/>
-
+        android:layout_below="@+id/btn_overlay"></ProgressBar>
 
     <Button
         android:id="@+id/btn_about"
