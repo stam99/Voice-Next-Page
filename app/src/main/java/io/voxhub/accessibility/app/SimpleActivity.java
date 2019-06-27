@@ -199,6 +199,10 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                     }
                 });
             }
+            else {
+                overlay = Overlay.getInstance();
+                if(overlay == null) overlay = new Overlay(this);
+            }
         }
     }
 
