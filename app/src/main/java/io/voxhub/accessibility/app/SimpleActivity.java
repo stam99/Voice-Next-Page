@@ -91,7 +91,22 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
 
-        requestMicPermissions();
+        //requestMicPermissions();
+        //make sure you have the microphone permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+           if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                   PackageManager.PERMISSION_GRANTED) {
+           }
+           else {
+               if (shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+                   Toast.makeText(this,
+                           "App required access to audio", Toast.LENGTH_SHORT).show();
+               }
+               requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO
+               }, 101);
+           }
+  
+        }
 
         btn_start = (Button)findViewById(R.id.btn_start);
         btn_setting = (Button)findViewById(R.id.btn_setting);
@@ -183,8 +198,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                         startActivityForResult(intent, 8888);
                     }
                 });
-                 btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.INVISIBLE : View.VISIBLE);
             }
+            btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -361,4 +376,16 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public static ServerInfo getServerInfo() {
         return serverInfo;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(requestCode == 101){
+            if(grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+            }
+        }
+     }
+
 }

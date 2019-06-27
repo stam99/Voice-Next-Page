@@ -33,7 +33,7 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_dictation);
         Intent intent = getIntent();
-        
+
         serverT = (TextView) findViewById(R.id.server_title);
         portT = (TextView) findViewById(R.id.port_title);
         server = (EditText) findViewById(R.id.server);
