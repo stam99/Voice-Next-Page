@@ -339,8 +339,11 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onDestroy() {
         //overlay.destroy(); 
-        _currentRecognizer.stopRecording();
+        _currentRecognizer.shutdownThreads();
         MyLog.i("SimpleActivity stopped listening");
+        if(Overlay.getOverlayExists()) {
+            overlay.hide();  // destroy?
+        }
         super.onDestroy();
     }
 

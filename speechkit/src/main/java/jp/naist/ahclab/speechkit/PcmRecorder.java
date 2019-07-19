@@ -5,8 +5,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 public class PcmRecorder implements Runnable {
-	
 	private volatile boolean isRecording;
+	private volatile boolean isExiting;
 	private final Object mutex = new Object();
 	public static final int frequency = 16000;
 //	public static final int frequency = 44100;
@@ -20,11 +20,9 @@ public class PcmRecorder implements Runnable {
 	AudioRecord recordInstance ;
 
 	public PcmRecorder() {
-		// TODO Auto-generated constructor stub
-		android.os.Process
-		.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+		android.os.Process.setThreadPriority(
+            android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
-		
 		bufferSize = AudioRecord.getMinBufferSize(frequency,
                 AudioFormat.CHANNEL_IN_MONO, audioEncoding);
 		
@@ -33,12 +31,11 @@ public class PcmRecorder implements Runnable {
 				MediaRecorder.AudioSource.MIC, frequency,
 				AudioFormat.CHANNEL_IN_MONO, audioEncoding, bufferSize);
         Log.i("PcmRecorder", "current state of AudioRecord: " + recordInstance.getState());
-		
-	
 	}
+
 	public void run() {
 		synchronized (mutex) {
-			while (!this.isRecording) {
+			while (!this.isRecording && !this.isExiting) {
 				try {
 					mutex.wait();
 				} catch (InterruptedException e) {
@@ -46,9 +43,10 @@ public class PcmRecorder implements Runnable {
 				}
 			}
 		}
+
         Log.i("PcmRecorder", "AudioRecord State before record: " + recordInstance.getState());
         boolean recording = false;
-		while(true){
+		while(!this.isExiting) {
             try{
                 recordInstance.startRecording();
                 break;
@@ -63,7 +61,7 @@ public class PcmRecorder implements Runnable {
 //            catch(InterruptedException f){throw new InterruptedException("sleep() interrupted!");}
         }
         Log.i("PcmRecorder", "AudioRecord State after record: " + recordInstance.getState());
-		while (this.isRecording) {
+		while (this.isRecording && !this.isExiting) {
 			bufferRead = recordInstance.read(tempBuffer, 0, bufferSize);
 			
 			if (bufferRead == AudioRecord.ERROR_INVALID_OPERATION) {
@@ -93,11 +91,11 @@ public class PcmRecorder implements Runnable {
 		}
 		recordInstance.stop();
 	}
+
 	public int getMaxAmplitude(){
 		int result = cAmplitude;
 		cAmplitude = 0;
 		return result;
-		
 	}
 	
 	public void setRecording(boolean isRecording) {
@@ -108,6 +106,11 @@ public class PcmRecorder implements Runnable {
 			}
 		}
 	}
+
+    public void shutdownThreads() {
+        this.isExiting = true;
+        setRecording(false);
+    }
 
 	public boolean isRecording() {
 		synchronized (mutex) {
@@ -127,6 +130,4 @@ public class PcmRecorder implements Runnable {
 		// TODO Auto-generated method stub
 		rl = recognizer;
 	}
-
-
 }

@@ -312,24 +312,25 @@ public class Recognizer implements RecorderListener{
 		// Notify
 		recogListener.onRecordingDone();
 	}
+
+    public void shutdownThreads() {
+        recorderInstance.shutdownThreads();
+    }
 	
 	void startRecord(){
-				// TODO Auto-generated method stub			
-			thRecord = new Thread(recorderInstance);
-			thRecord.start();
-			recorderInstance.setRecording(true);
-			
+		// TODO Auto-generated method stub			
+		thRecord = new Thread(recorderInstance);
+		thRecord.start();
+		recorderInstance.setRecording(true);
 	}
-		
 	
 	void stopRecord(){
 		recorderInstance.setRecording(false);
-		
 	}
+
 	@Override
 	public void onRecorderBuffer(byte[] buffer) {
 		// TODO Auto-generated method stub
 		ws_client_speech.send(buffer);
 	}
-	
 }
