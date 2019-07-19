@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
@@ -152,7 +153,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                 requestListen = false;
                 MyLog.i("Setting requestListen to " + requestListen);
                 _currentRecognizer.stopRecording();
-                progress.setVisibility(View.GONE);
+                progress.setVisibility(View.INVISIBLE);
                 if (Overlay.getOverlayExists())
                     overlay.hide();
             }
@@ -198,21 +199,35 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
                         startActivityForResult(intent, 8888);
                     }
                 });
-            }
-            else {
+           }
+           else {
                 overlay = Overlay.getInstance();
                 if(overlay == null) overlay = new Overlay(this);
-            }
+           }
+           btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        MyLog.i("requestCode: " + requestCode + " resultCode: " + resultCode + " data: " + data);
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 8888) {
+//          btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+            MyLog.i("can draw overlays: " + (Settings.canDrawOverlays(this)));
+            final Activity outer = this;
+            btn_overlay.postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        btn_overlay.setVisibility(Settings.canDrawOverlays(outer)
+                            ? View.GONE : View.VISIBLE);
+                    }
+                }, 500);
+
             if(resultCode == RESULT_OK){
                 askedForOverlayPermission = false;
-                btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+//                btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
                 if (Settings.canDrawOverlays(this)) {
                     overlay = Overlay.getInstance();
                     if(overlay == null) overlay = new Overlay(this);
@@ -278,7 +293,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
             //onFinish("stop command called");
             if (Overlay.getOverlayExists())
                 overlay.hide();
-            progress.setVisibility(View.GONE);
+            progress.setVisibility(View.INVISIBLE);
             _currentRecognizer.stopRecording();
             requestListen = false;
             MyLog.i("Setting requestListen to " + requestListen);
@@ -322,6 +337,14 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     }
 
     @Override
+    public void onDestroy() {
+        //overlay.destroy(); 
+        _currentRecognizer.stopRecording();
+        MyLog.i("SimpleActivity stopped listening");
+        super.onDestroy();
+    }
+
+    @Override
     public void onReady(String reason) {
         btn_start.setEnabled(true);
     }
@@ -355,8 +378,8 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     @Override
     public void onError(Exception error) {
-        Toast.makeText(getApplicationContext(),"Error: " + error,
-                Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(),"Error: " + error,
+//                Toast.LENGTH_SHORT).show();
         MyLog.i("SimpleActivity has error: " + error);
         
         for (StackTraceElement e : error.getStackTrace()) {
@@ -372,11 +395,18 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onResume() {
         btn_enable.setVisibility(manager.isEnabled() ? View.GONE : View.VISIBLE);
-        btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+      //btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
 
         super.onResume();
     }
-    
+
+   /* @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+
+        super.onFocusChange(v, hasFocus);
+    }*/
+   
     public static ServerInfo getServerInfo() {
         return serverInfo;
     }
