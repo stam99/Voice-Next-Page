@@ -76,12 +76,39 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         _currentRecognizer.connect();
     }
 
-    void requestMicPermissions(){
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
+    private boolean haveMicPermissions() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED;
+    }
 
+    void requestMicPermissions(){
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+            return;  // how do we handle this case?
+
+        if(haveMicPermissions()) {
+            init_speechkit(serverInfo);
+        }
+        else {
             ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+                new String[]{Manifest.permission.RECORD_AUDIO}, 101);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if(requestCode == 101){
+            boolean granted = (grantResults[0] == PackageManager.PERMISSION_GRANTED);
+            if(granted) {
+                init_speechkit(serverInfo);
+            }
+            else {
+                //requestMicPermissions();  // infinite loop
+                Toast.makeText(this,
+                    "App requires audio permissions", Toast.LENGTH_LONG).show();
+                finishAffinity();  // exit app
+            }
         }
     }
 
@@ -92,22 +119,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
 
-        //requestMicPermissions();
-        //make sure you have the microphone permissions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-           if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
-                   PackageManager.PERMISSION_GRANTED) {
-           }
-           else {
-               if (shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
-                   Toast.makeText(this,
-                           "App required access to audio", Toast.LENGTH_SHORT).show();
-               }
-               requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO
-               }, 101);
-           }
-  
-        }
+        requestMicPermissions();
 
         btn_start = (Button)findViewById(R.id.btn_start);
         btn_setting = (Button)findViewById(R.id.btn_setting);
@@ -413,16 +425,5 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public static ServerInfo getServerInfo() {
         return serverInfo;
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if(requestCode == 101){
-            if(grantResults[0] != PackageManager.PERMISSION_GRANTED){
-                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 101);
-            }
-        }
-     }
 
 }
