@@ -136,7 +136,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
         init_speechkit(serverInfo);
 
-//        btn_start.setText(manager.isEnabled() ? "Start listening" : "Tap to start service...");
 
         btn_setting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -362,13 +361,15 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     @Override
     public void onReady(String reason) {
         btn_start.setEnabled(true);
+        Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
+            Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onNotReady(String reason) {
         btn_start.setEnabled(false);
         Toast.makeText(getApplicationContext(),"Server connected, but not ready, reason: "+reason,
-                Toast.LENGTH_SHORT).show();
+            Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -425,5 +426,4 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     public static ServerInfo getServerInfo() {
         return serverInfo;
     }
-
 }
