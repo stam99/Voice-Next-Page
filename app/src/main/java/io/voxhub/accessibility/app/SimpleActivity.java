@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.provider.Settings;
 import android.graphics.Color;
@@ -35,6 +36,8 @@ import android.Manifest;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat; 
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -136,14 +139,17 @@ public class SimpleActivity extends Activity {
 
         init_speechkit(serverInfo);
 
-
         btn_setting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { // Open settings page
                 Intent intent = new Intent(SimpleActivity.this, SettingsActivity.class);
                 startActivity(intent);
+                MyLog.i("SettingsActivity intent started");
             }
         });
+
+        //SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         // Button start
         MyLog.i("onCreate - buttons made");
         btn_start.setOnClickListener(new View.OnClickListener() {

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        app:title="Connection"
+        app:key="server_port">
+
+        <EditTextPreference
+            app:key="server"
+            app:title="Server"
+            app:summary="silvious-server.voxhub.io"
+            app:dialogTitle="Server"
+            app:defaultValue="silvious-server.voxhub.io"
+            app:inputType="textCapWords"/>
+        
+        <EditTextPreference
+            app:key="port"
+            app:title="Port"
+            app:summary="8022"
+            app:dialogTitle="Port"
+            app:defaultValue="8022"
+            app:inputType="textCapWords"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="Features"
+        app:key="on_off_features">
+
+        <SwitchPreference
+            app:key="hovertext"
+            app:title="Hover Text"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

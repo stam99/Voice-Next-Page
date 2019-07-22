@@ -21,7 +21,11 @@
         </activity>
         <activity
             android:name="io.voxhub.accessibility.app.SettingsActivity"
-            android:label="@string/action_settings" >
+            android:label="@string/action_settings"
+            android:parentActivityName="io.voxhub.accessibility.app.SimpleActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="io.voxhub.accessibility.app.SimpleActivity"/>
         </activity>
         <activity
             android:name="io.voxhub.accessibility.app.AboutActivity"
