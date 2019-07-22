@@ -48,7 +48,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ProgressBar;
 
-public class SimpleActivity extends Activity implements Recognizer.Listener{
+public class SimpleActivity extends Activity {
 
     final String TAG = "SimpleActivity";
 
@@ -72,7 +72,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
 
     void init_speechkit(ServerInfo serverInfo){
         SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);
-        _currentRecognizer = _speechKit.createRecognizer(SimpleActivity.this);
+        _currentRecognizer = _speechKit.createRecognizer(new ThreadAdapter(new SpeechkitCode()));
         _currentRecognizer.connect();
     }
 
@@ -251,13 +251,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         }
     }
 
-    @Override
-    public void onPartialResult(String result) {
-        ed_result.setText(result);
-        if(Overlay.getOverlayExists())
-            overlay.setText(result);
-    }
-
     public void sendAccessibilityEvent(String string) {
         AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
         event.setClassName(getClass().getName());
@@ -291,63 +284,6 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
     }
 
     @Override
-    public void onFinalResult(String result) {
-        ed_result.setText(result + ".");
-        if (Overlay.getOverlayExists())
-            overlay.setText(result + ".");
-
-        String canonical = filterText(result);
-        MyLog.i("SimpleActivity recognized [" + canonical + "]");
-
-        if (canonical.equals("stop listening")) {
-            MyLog.i("SimpleActivity spotted stop listening");
-            //onFinish("stop command called");
-            if (Overlay.getOverlayExists())
-                overlay.hide();
-            progress.setVisibility(View.INVISIBLE);
-            _currentRecognizer.stopRecording();
-            requestListen = false;
-            MyLog.i("Setting requestListen to " + requestListen);
-        }
-
-        if(!manager.isEnabled()) { // This will never be called bc start button
-            ed_result.setText(result + "...[service not running]");
-
-            MyLog.i("SimpleActivity manager not enabled");
-            return;
-        }
-
-        if (canonical.equals("next page")) {
-            MyLog.i("SimpleActivity spotted next page");
-            sendAccessibilityEvent("next");
-            MyLog.i("SimpleActivity sent next page");
-        }
-        if (canonical.equals("previous page")) {
-            MyLog.i("SimpleActivity spotted previous page");
-            sendAccessibilityEvent("previous");
-            MyLog.i("SimpleActivity sent previous page");
-        }
-        if (canonical.equals("center")) {
-            MyLog.i("SimpleActivity spotted center");
-            sendAccessibilityEvent("center");
-            MyLog.i("SimpleActivity sent center");
-        }
-        if (canonical.equals("unknowncommande")) {
-            MyLog.i("SimpleActivity spotted ");
-            if(Overlay.getOverlayExists())
-                overlay.hide();
-            MyLog.i("SimpleActivity paused listening");
-        }
-    }
-
-    @Override
-    public void onFinish(String reason) {
-        //overlay.destroy(); 
-        _currentRecognizer.stopRecording();
-        MyLog.i("SimpleActivity stopped listening");
-    }
-
-    @Override
     public void onDestroy() {
         //overlay.destroy(); 
         _currentRecognizer.shutdownThreads();
@@ -358,57 +294,7 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         super.onDestroy();
     }
 
-    @Override
-    public void onReady(String reason) {
-        btn_start.setEnabled(true);
-        Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
-            Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onNotReady(String reason) {
-        btn_start.setEnabled(false);
-        Toast.makeText(getApplicationContext(),"Server connected, but not ready, reason: "+reason,
-            Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onUpdateStatus(SpeechKit.Status status) {
-      /*  Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
-                Toast.LENGTH_SHORT).show();*/
-        MyLog.i("SimpleActivity has new status: " + status.name());        
-    }
-
-    @Override
-    public void onRecordingBegin() {
-        ed_result.setText("");        
-    }
-
-    @Override
-    public void onRecordingDone() {
-        if (requestListen) {
-            _currentRecognizer.start();
-            MyLog.i("SimpleActivity restarted listening.");
-        }
-    }
-
-    @Override
-    public void onError(Exception error) {
-//        Toast.makeText(getApplicationContext(),"Error: " + error,
-//                Toast.LENGTH_SHORT).show();
-        MyLog.i("SimpleActivity has error: " + error);
-        
-        for (StackTraceElement e : error.getStackTrace()) {
-            MyLog.i("SimpleActivity stack trace: " + e.toString());
-        }    
-        _currentRecognizer.stopRecording();
-        if (requestListen) {
-            _currentRecognizer.start();
-            MyLog.i("SimpleActivity restarted listening.");
-        }
-    }
-
-    @Override
+       @Override
     public void onResume() {
         btn_enable.setVisibility(manager.isEnabled() ? View.GONE : View.VISIBLE);
       //btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
@@ -416,14 +302,206 @@ public class SimpleActivity extends Activity implements Recognizer.Listener{
         super.onResume();
     }
 
-   /* @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
-
-        super.onFocusChange(v, hasFocus);
-    }*/
-   
     public static ServerInfo getServerInfo() {
         return serverInfo;
+    }
+
+    //--- inner class ~ SpeechkitCode ---//
+    class SpeechkitCode implements Recognizer.Listener {
+
+        @Override
+        public void onReady(String reason) {
+            btn_start.setEnabled(true);
+            Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
+                Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onNotReady(String reason) {
+            btn_start.setEnabled(false);
+            Toast.makeText(getApplicationContext(),"Server connected, but not ready, reason: "+reason,
+                Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onUpdateStatus(SpeechKit.Status status) {
+          /*  Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
+                    Toast.LENGTH_SHORT).show();*/
+            MyLog.i("SimpleActivity has new status: " + status.name());        
+        }
+
+        @Override
+        public void onFinalResult(String result) {
+            ed_result.setText(result + ".");
+            if (Overlay.getOverlayExists())
+                overlay.setText(result + ".");
+
+            String canonical = filterText(result);
+            MyLog.i("SimpleActivity recognized [" + canonical + "]");
+
+            if (canonical.equals("stop listening")) {
+                MyLog.i("SimpleActivity spotted stop listening");
+                //onFinish("stop command called");
+                if (Overlay.getOverlayExists())
+                    overlay.hide();
+                progress.setVisibility(View.INVISIBLE);
+                _currentRecognizer.stopRecording();
+                requestListen = false;
+                MyLog.i("Setting requestListen to " + requestListen);
+            }
+
+            if(!manager.isEnabled()) { // This will never be called bc start button
+                ed_result.setText(result + "...[service not running]");
+
+                MyLog.i("SimpleActivity manager not enabled");
+                return;
+            }
+
+            if (canonical.equals("next page")) {
+                MyLog.i("SimpleActivity spotted next page");
+                sendAccessibilityEvent("next");
+                MyLog.i("SimpleActivity sent next page");
+            }
+            if (canonical.equals("previous page")) {
+                MyLog.i("SimpleActivity spotted previous page");
+                sendAccessibilityEvent("previous");
+                MyLog.i("SimpleActivity sent previous page");
+            }
+            if (canonical.equals("center")) {
+                MyLog.i("SimpleActivity spotted center");
+                sendAccessibilityEvent("center");
+                MyLog.i("SimpleActivity sent center");
+            }
+            if (canonical.equals("unknowncommande")) {
+                MyLog.i("SimpleActivity spotted ");
+                if(Overlay.getOverlayExists())
+                    overlay.hide();
+                MyLog.i("SimpleActivity paused listening");
+            }
+        }
+
+        @Override
+        public void onFinish(String reason) {
+            //overlay.destroy(); 
+            _currentRecognizer.stopRecording();
+            MyLog.i("SimpleActivity stopped listening");
+        }
+
+        @Override
+        public void onPartialResult(String result) {
+            ed_result.setText(result);
+            if(Overlay.getOverlayExists())
+                overlay.setText(result);
+        }
+
+        @Override
+        public void onRecordingBegin() {
+            ed_result.setText("");        
+        }
+
+        @Override
+        public void onRecordingDone() {
+            if (requestListen) {
+                _currentRecognizer.start();
+                MyLog.i("SimpleActivity restarted listening.");
+            }
+        }
+
+        @Override
+        public void onError(Exception error) {
+    //        Toast.makeText(getApplicationContext(),"Error: " + error,
+    //                Toast.LENGTH_SHORT).show();
+            MyLog.i("SimpleActivity has error: " + error);
+            
+            for (StackTraceElement e : error.getStackTrace()) {
+                MyLog.i("SimpleActivity stack trace: " + e.toString());
+            }    
+            _currentRecognizer.stopRecording();
+            if (requestListen) {
+                _currentRecognizer.start();
+                MyLog.i("SimpleActivity restarted listening.");
+            }
+        }
+    }
+
+    class ThreadAdapter implements Recognizer.Listener {
+        Recognizer.Listener realCode;
+
+        public ThreadAdapter(Recognizer.Listener realCode) {
+            this.realCode = realCode;
+        }
+
+        @Override
+        public void onReady(final String reason) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onReady(reason);
+                }
+            });
+        }
+
+        @Override
+        public void onRecordingBegin(){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onRecordingBegin();
+                }
+            });}
+ 
+        @Override       
+        public void onRecordingDone(){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onRecordingDone();
+                }
+            });}
+ 
+        @Override       
+        public void onError(final Exception error){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onError(error);
+                }
+            });}
+ 
+        @Override       
+        public void onPartialResult(final String result){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onPartialResult(result);
+                }
+            });}
+ 
+        @Override       
+        public void onFinalResult(final String result){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onFinalResult(result);
+                }
+            });}
+ 
+        @Override       
+        public void onFinish(final String reason){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onFinish(reason);
+                }
+            });}
+ 
+        @Override       
+        public void onNotReady(final String reason){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onNotReady(reason);
+                }
+            });}
+ 
+        @Override       
+        public void onUpdateStatus(final SpeechKit.Status status){
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    realCode.onUpdateStatus(status);
+                }
+            });}
     }
 }
