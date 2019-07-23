@@ -181,7 +181,7 @@ public class WebSocketClient {
     }
 
     public void disconnect() {
-        if (mSocket != null) {
+        if (mThread != null && mThread.isAlive()) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {

@@ -114,11 +114,6 @@ public class MyAccessibilityService extends AccessibilityService {
                 doGesture(GestureType.GESTURE_TAP_RIGHT_THREE);
             }
         }
-        if(event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            Log.i("accessibilityservice", "got click event");
-            String text = getTextFor(event);
-            Log.i("accessibilityservice", "click event text is [" + text + "]");
-        }
     }
     @Override
     public void onInterrupt() {

@@ -72,10 +72,12 @@ public class SimpleActivity extends Activity {
 
     private static ServerInfo serverInfo = new ServerInfo();
     private static Recognizer _currentRecognizer;
+    private static ThreadAdapter _currentListener;
 
     void init_speechkit(ServerInfo serverInfo){
         SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);
-        _currentRecognizer = _speechKit.createRecognizer(new ThreadAdapter(new SpeechkitCode()));
+        _currentListener = new ThreadAdapter(new SpeechkitCode());
+        _currentRecognizer = _speechKit.createRecognizer(_currentListener);
         _currentRecognizer.connect();
     }
 
@@ -292,6 +294,7 @@ public class SimpleActivity extends Activity {
     @Override
     public void onDestroy() {
         //overlay.destroy(); 
+        _currentListener.stop();
         _currentRecognizer.shutdownThreads();
         MyLog.i("SimpleActivity stopped listening");
         if(Overlay.getOverlayExists()) {
@@ -431,26 +434,29 @@ public class SimpleActivity extends Activity {
     }
 
     class ThreadAdapter implements Recognizer.Listener {
-        Recognizer.Listener realCode;
+        Recognizer.Listener realCode;  // accessed from main UI thread only
 
         public ThreadAdapter(Recognizer.Listener realCode) {
             this.realCode = realCode;
+        }
+
+        public void stop() {
+            this.realCode = null;  // no need for synchronized
         }
 
         @Override
         public void onReady(final String reason) {
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onReady(reason);
+                    if(realCode != null) realCode.onReady(reason);
                 }
-            });
-        }
+            });}
 
         @Override
         public void onRecordingBegin(){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onRecordingBegin();
+                    if(realCode != null) realCode.onRecordingBegin();
                 }
             });}
  
@@ -458,7 +464,7 @@ public class SimpleActivity extends Activity {
         public void onRecordingDone(){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onRecordingDone();
+                    if(realCode != null) realCode.onRecordingDone();
                 }
             });}
  
@@ -466,7 +472,7 @@ public class SimpleActivity extends Activity {
         public void onError(final Exception error){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onError(error);
+                    if(realCode != null) realCode.onError(error);
                 }
             });}
  
@@ -474,7 +480,7 @@ public class SimpleActivity extends Activity {
         public void onPartialResult(final String result){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onPartialResult(result);
+                    if(realCode != null) realCode.onPartialResult(result);
                 }
             });}
  
@@ -482,7 +488,7 @@ public class SimpleActivity extends Activity {
         public void onFinalResult(final String result){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onFinalResult(result);
+                    if(realCode != null) realCode.onFinalResult(result);
                 }
             });}
  
@@ -490,7 +496,7 @@ public class SimpleActivity extends Activity {
         public void onFinish(final String reason){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onFinish(reason);
+                    if(realCode != null) realCode.onFinish(reason);
                 }
             });}
  
@@ -498,7 +504,7 @@ public class SimpleActivity extends Activity {
         public void onNotReady(final String reason){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onNotReady(reason);
+                    if(realCode != null) realCode.onNotReady(reason);
                 }
             });}
  
@@ -506,7 +512,7 @@ public class SimpleActivity extends Activity {
         public void onUpdateStatus(final SpeechKit.Status status){
             runOnUiThread(new Runnable() {
                 public void run() {
-                    realCode.onUpdateStatus(status);
+                    if(realCode != null) realCode.onUpdateStatus(status);
                 }
             });}
     }

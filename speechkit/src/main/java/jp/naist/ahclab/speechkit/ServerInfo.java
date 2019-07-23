@@ -11,10 +11,10 @@ import java.util.List;
  * Created by truong-d on 14/12/08.
  */
 public class ServerInfo {
-    private String addr="bark.phon.ioc.ee";
+    private String addr="silvius-server.voxhub.io";
     private String app_speech="/dev/duplex-speech-api/ws/speech";
     private String app_status="/dev/duplex-speech-api/ws/status";
-    private int port=82;
+    private int port=8022;
 
     List<BasicNameValuePair> extraHeaders = Arrays.asList(
             new BasicNameValuePair("Cookie", "session=abcd"),

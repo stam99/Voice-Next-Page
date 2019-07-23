@@ -8,17 +8,17 @@
         <EditTextPreference
             app:key="server"
             app:title="Server"
-            app:summary="silvious-server.voxhub.io"
+            app:summary="Tap to view or edit"
             app:dialogTitle="Server"
-            app:defaultValue="silvious-server.voxhub.io"
+            app:defaultValue="@string/default_server_addr"
             app:inputType="textCapWords"/>
         
         <EditTextPreference
             app:key="port"
             app:title="Port"
-            app:summary="8022"
+            app:summary="Tap to view or edit"
             app:dialogTitle="Port"
-            app:defaultValue="8022"
+            app:defaultValue="@string/default_server_port"
             app:inputType="textCapWords"/>
     </PreferenceCategory>
 
@@ -27,7 +27,7 @@
         app:key="on_off_features">
 
         <SwitchPreference
-            app:key="hovertext"
+            app:key="@string/hover_text"
             app:title="Hover Text"/>
     </PreferenceCategory>
 

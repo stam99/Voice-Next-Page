@@ -296,7 +296,6 @@ public class Recognizer implements RecorderListener{
 		}
 	}
 	
-
 	public float getAudioLevel() {
 		// TODO Auto-generated method stub
 		return 0;
@@ -314,6 +313,7 @@ public class Recognizer implements RecorderListener{
 	}
 
     public void shutdownThreads() {
+        cancel();
         recorderInstance.shutdownThreads();
     }
 	
