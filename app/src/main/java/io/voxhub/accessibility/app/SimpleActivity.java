@@ -70,7 +70,7 @@ public class SimpleActivity extends Activity {
     private boolean askedForOverlayPermission;
 //    protected boolean overlayExists;
 
-    private static ServerInfo serverInfo = new ServerInfo();
+    private static ServerInfo serverInfo; // = new ServerInfo();
     private static Recognizer _currentRecognizer;
     private static ThreadAdapter _currentListener;
 
@@ -117,14 +117,64 @@ public class SimpleActivity extends Activity {
         }
     }
 
+    public void makeServerInfo() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        serverInfo = new ServerInfo(pref.getString("server", "silvius-server.voxhub.io"),
+            //pref.getInt("port", 8022));
+            Integer.parseInt(pref.getString("port", "8022")));
+
+        serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
+        serverInfo.setAppStatus(this.getResources().getString(R.string.default_server_app_status));
+    }
+    
+    public void makeOverlay(boolean enabled) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return;
+        if(!Settings.canDrawOverlays(this)) return;
+
+        overlay = Overlay.getInstance();
+        if(overlay == null) overlay = new Overlay(this);
+
+        if(enabled && requestListen) overlay.show();
+        else overlay.hide();
+    }
+
+    public void makeOverlay() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        makeOverlay(pref.getBoolean("overlay_enabled", true));
+    }
+
+    private void updateOverlayUI() {
+        makeOverlay();
+        btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+    }
+
+    private void startListening() {
+        requestListen = true;
+        MyLog.i("Setting requestListen to " + requestListen);
+        _currentRecognizer.start();
+        makeOverlay();
+        progress.setVisibility(View.VISIBLE);
+    }
+
+    private void stopListening() {
+        requestListen = false;
+        MyLog.i("Setting requestListen to " + requestListen);
+        _currentRecognizer.stopRecording();
+        makeOverlay();
+        progress.setVisibility(View.INVISIBLE);
+    }
+
+    private void updateState() {
+        btn_enable.setVisibility(manager.isEnabled() ? View.GONE : View.VISIBLE); 
+        updateOverlayUI();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.i("onCreate has been entered");
         manager = (AccessibilityManager)this.getSystemService(Context.ACCESSIBILITY_SERVICE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dictation);
-
-        requestMicPermissions();
 
         btn_start = (Button)findViewById(R.id.btn_start);
         btn_setting = (Button)findViewById(R.id.btn_setting);
@@ -134,12 +184,15 @@ public class SimpleActivity extends Activity {
         btn_about = (Button) this.findViewById(R.id.btn_about);
         progress = (ProgressBar)findViewById(R.id.progress_listening);
         ed_result = (EditText)findViewById(R.id.ed_result);
-        serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
+        /*serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
         serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
-        serverInfo.setAppStatus(this.getResources().getString(R.string.default_server_app_status));
+        serverInfo.setAppStatus(this.getResources().getString(R.string.default_server_app_status));*/
 
-        init_speechkit(serverInfo);
+        //init_speechkit(serverInfo);
+
+        makeServerInfo();  // before requestMicPermissions
+        requestMicPermissions();
 
         btn_setting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,31 +203,21 @@ public class SimpleActivity extends Activity {
             }
         });
 
-        //SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Button start
         MyLog.i("onCreate - buttons made");
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestListen = true;
-                MyLog.i("Setting requestListen to " + requestListen);
-                _currentRecognizer.start();
-                if (Overlay.getOverlayExists())
-                    overlay.show();
-                progress.setVisibility(View.VISIBLE);
+                startListening();
             }
         });
         
         btn_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestListen = false;
-                MyLog.i("Setting requestListen to " + requestListen);
-                _currentRecognizer.stopRecording();
-                progress.setVisibility(View.INVISIBLE);
-                if (Overlay.getOverlayExists())
-                    overlay.hide();
+                stopListening();
             }
         });
         
@@ -195,9 +238,6 @@ public class SimpleActivity extends Activity {
             }
         });
 
-        MyLog.i("onCreate - OnClickListeners are made");
-
-        btn_enable.setVisibility(manager.isEnabled() ? View.GONE : View.VISIBLE); 
 
   //this one was already commented out *******_________dont uncomment_______*********
         /* Stops recording once dialog goes away
@@ -207,24 +247,18 @@ public class SimpleActivity extends Activity {
                 _currentRecognizer.stopRecording();
             }
         });*/
-        
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(!Settings.canDrawOverlays(this)){
-                askedForOverlayPermission = true;
-                btn_overlay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                        startActivityForResult(intent, 8888);
-                    }
-                });
-           }
-           else {
-                overlay = Overlay.getInstance();
-                if(overlay == null) overlay = new Overlay(this);
-           }
-           btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
-        }
+
+        btn_overlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 8888);
+            }
+        });
+
+        MyLog.i("onCreate - OnClickListeners are made");
+
+        updateState();
     }
 
     @Override
@@ -232,28 +266,21 @@ public class SimpleActivity extends Activity {
         MyLog.i("requestCode: " + requestCode + " resultCode: " + resultCode + " data: " + data);
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 8888) {
-//          btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
             MyLog.i("can draw overlays: " + (Settings.canDrawOverlays(this)));
-            final Activity outer = this;
+            final SimpleActivity outer = this;
             btn_overlay.postDelayed(
                 new Runnable() {
                     @Override
                     public void run() {
-                        btn_overlay.setVisibility(Settings.canDrawOverlays(outer)
-                            ? View.GONE : View.VISIBLE);
+                        outer.updateOverlayUI();
                     }
                 }, 500);
 
             if(resultCode == RESULT_OK){
-                askedForOverlayPermission = false;
-//                btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
-                if (Settings.canDrawOverlays(this)) {
-                    overlay = Overlay.getInstance();
-                    if(overlay == null) overlay = new Overlay(this);
-                    // overlay.overlayExists = true;
-                } else {
-                    Toast.makeText(getApplicationContext(), "ACTION_MANAGE_OVERLAY_PERMISSION Permission Denied", Toast.LENGTH_SHORT).show();
-                   // overlay.overlayExists = false;
+                if (!Settings.canDrawOverlays(this)) {
+                    Toast.makeText(getApplicationContext(),
+                        "ACTION_MANAGE_OVERLAY_PERMISSION Permission Denied",
+                        Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -298,15 +325,15 @@ public class SimpleActivity extends Activity {
         _currentRecognizer.shutdownThreads();
         MyLog.i("SimpleActivity stopped listening");
         if(Overlay.getOverlayExists()) {
-            overlay.hide();  // destroy?
+            Overlay.getInstance().hide();  // destroy?
         }
         super.onDestroy();
     }
 
-       @Override
+    @Override
     public void onResume() {
-        btn_enable.setVisibility(manager.isEnabled() ? View.GONE : View.VISIBLE);
-      //btn_overlay.setVisibility(Settings.canDrawOverlays(this) ? View.GONE : View.VISIBLE);
+        makeServerInfo();
+        updateState();
 
         super.onResume();
     }
@@ -351,12 +378,7 @@ public class SimpleActivity extends Activity {
             if (canonical.equals("stop listening")) {
                 MyLog.i("SimpleActivity spotted stop listening");
                 //onFinish("stop command called");
-                if (Overlay.getOverlayExists())
-                    overlay.hide();
-                progress.setVisibility(View.INVISIBLE);
-                _currentRecognizer.stopRecording();
-                requestListen = false;
-                MyLog.i("Setting requestListen to " + requestListen);
+                stopListening();
             }
 
             if(!manager.isEnabled()) { // This will never be called bc start button
