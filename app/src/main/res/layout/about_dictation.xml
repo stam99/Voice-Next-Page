@@ -42,6 +42,7 @@
         android:id="@+id/btn_back"
         android:enabled="true"
         android:text="@string/txt_btn_back"
+        android:background="@drawable/button_states"
         android:layout_below="@+id/contributors_body"/>
       
 </RelativeLayout>

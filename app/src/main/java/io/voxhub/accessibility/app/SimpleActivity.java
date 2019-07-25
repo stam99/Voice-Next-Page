@@ -2,6 +2,7 @@ package io.voxhub.accessibility.app;
 import jp.naist.ahclab.speechkit.logs.MyLog;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -58,7 +60,8 @@ public class SimpleActivity extends Activity {
     private AccessibilityManager manager;
 
     private Button btn_start;
-    private Button btn_setting;
+   // private Button btn_setting;
+    private ImageButton btn_setting;
     private Button btn_stop;
     private Button btn_enable;
     private Button btn_overlay;
@@ -68,9 +71,8 @@ public class SimpleActivity extends Activity {
     private EditText ed_result;
     private boolean requestListen = false;
     private boolean askedForOverlayPermission;
-//    protected boolean overlayExists;
 
-    private static ServerInfo serverInfo; // = new ServerInfo();
+    private static ServerInfo serverInfo; 
     private static Recognizer _currentRecognizer;
     private static ThreadAdapter _currentListener;
 
@@ -81,9 +83,29 @@ public class SimpleActivity extends Activity {
         _currentRecognizer.connect();
     }
 
+    void make_speechkit() {
+        if (!makeServerInfo()) return;
+        
+        destroy_speechkit();
+        requestMicPermissions();
+    }
+
     private boolean haveMicPermissions() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             == PackageManager.PERMISSION_GRANTED;
+    }
+
+    void destroy_speechkit() {
+        if (_currentRecognizer != null) {
+            stopListening();
+            _currentRecognizer.shutdownThreads();
+           // _currentRecognizer.cancel();
+            _currentRecognizer = null;
+        }
+        if (_currentListener != null) {
+            _currentListener.stop();
+            _currentListener = null;
+        }
     }
 
     void requestMicPermissions(){
@@ -109,22 +131,30 @@ public class SimpleActivity extends Activity {
                 init_speechkit(serverInfo);
             }
             else {
-                //requestMicPermissions();  // infinite loop
+                requestMicPermissions();  // infinite loop
                 Toast.makeText(this,
                     "App requires audio permissions", Toast.LENGTH_LONG).show();
-                finishAffinity();  // exit app
+                //finishAffinity();  // exit app
             }
         }
     }
 
-    public void makeServerInfo() {
+    public boolean makeServerInfo() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        serverInfo = new ServerInfo(pref.getString("server", "silvius-server.voxhub.io"),
-            //pref.getInt("port", 8022));
-            Integer.parseInt(pref.getString("port", "8022")));
+        String newserver = pref.getString("server", "silvius-server.voxhub.io");
+        int newport = Integer.parseInt(pref.getString("port", "8022"));
+        if (serverInfo == null 
+            || serverInfo.getAddr() != newserver
+            || serverInfo.getPort() != newport) {
 
-        serverInfo.setAppSpeech(this.getResources().getString(R.string.default_server_app_speech));
-        serverInfo.setAppStatus(this.getResources().getString(R.string.default_server_app_status));
+            serverInfo = new ServerInfo(newserver, newport);
+            serverInfo.setAppSpeech(this.getResources().getString(
+                R.string.default_server_app_speech));
+            serverInfo.setAppStatus(this.getResources().getString(
+                R.string.default_server_app_status));
+            return true;
+        }
+        else return false;
     }
     
     public void makeOverlay(boolean enabled) {
@@ -177,7 +207,8 @@ public class SimpleActivity extends Activity {
         setContentView(R.layout.activity_dictation);
 
         btn_start = (Button)findViewById(R.id.btn_start);
-        btn_setting = (Button)findViewById(R.id.btn_setting);
+        btn_setting = (ImageButton)findViewById(R.id.btn_setting);
+   //     btn_setting = (Button)findViewById(R.id.btn_setting);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
         btn_overlay = (Button) this.findViewById(R.id.btn_overlay); 
@@ -191,8 +222,7 @@ public class SimpleActivity extends Activity {
 
         //init_speechkit(serverInfo);
 
-        makeServerInfo();  // before requestMicPermissions
-        requestMicPermissions();
+        make_speechkit();
 
         btn_setting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -203,14 +233,18 @@ public class SimpleActivity extends Activity {
             }
         });
 
-//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-
         // Button start
         MyLog.i("onCreate - buttons made");
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startListening();
+                if (btn_enable.getVisibility() == View.VISIBLE)
+                    new AlertDialog.Builder(SimpleActivity.this)
+                        .setTitle("Warning")
+                        .setMessage("Accessibility Settings have not been enabled")
+                        .setPositiveButton("close", null)
+                        .show();
             }
         });
         
@@ -238,8 +272,6 @@ public class SimpleActivity extends Activity {
             }
         });
 
-
-  //this one was already commented out *******_________dont uncomment_______*********
         /* Stops recording once dialog goes away
         lst_dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -320,9 +352,9 @@ public class SimpleActivity extends Activity {
 
     @Override
     public void onDestroy() {
-        //overlay.destroy(); 
-        _currentListener.stop();
-        _currentRecognizer.shutdownThreads();
+       // _currentListener.stop();
+       // _currentRecognizer.shutdownThreads();
+        destroy_speechkit();
         MyLog.i("SimpleActivity stopped listening");
         if(Overlay.getOverlayExists()) {
             Overlay.getInstance().hide();  // destroy?
@@ -332,8 +364,10 @@ public class SimpleActivity extends Activity {
 
     @Override
     public void onResume() {
-        makeServerInfo();
+        make_speechkit();
         updateState();
+
+        MyLog.i("onResume called");
 
         super.onResume();
     }
@@ -413,7 +447,6 @@ public class SimpleActivity extends Activity {
 
         @Override
         public void onFinish(String reason) {
-            //overlay.destroy(); 
             _currentRecognizer.stopRecording();
             MyLog.i("SimpleActivity stopped listening");
         }

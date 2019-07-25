@@ -18,15 +18,17 @@
         android:layout_height="wrap_content"
         android:enabled="true"
         android:text="@string/txt_btn_enable"
+        android:background="@drawable/button_states"
         android:layout_below="@+id/icon"
         android:layout_centerHorizontal="true"/>
 
     <Button
         android:id="@+id/btn_overlay"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:enabled="true"
         android:text="@string/txt_btn_overlay"
+        android:background="@drawable/button_states"
         android:layout_below="@+id/btn_enable"/>
 
     <Button
@@ -35,6 +37,7 @@
         android:layout_height="wrap_content"
         android:enabled="false"
         android:text="@string/txt_btn_start"
+        android:background="@drawable/button_states"
         android:layout_below="@+id/btn_overlay"/>
    
     <Button
@@ -43,6 +46,7 @@
         android:layout_height="wrap_content"
         android:enabled="true"
         android:text="@string/txt_btn_stop"
+        android:background="@drawable/button_states"
         android:layout_toRightOf="@+id/progress_listening"
         android:layout_below="@+id/btn_overlay"/>
 
@@ -69,10 +73,22 @@
         android:layout_height="wrap_content"
         android:enabled="true"
         android:text="@string/txt_btn_about"
+        android:background="@drawable/button_states"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"/>
 
-    <Button
+    <ImageButton
+        android:id="@+id/btn_setting"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:enabled="true"
+        android:src="@drawable/settings_icon"
+        android:tint="@drawable/touch_selector"
+        android:background="@android:color/transparent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"/>
+
+<!--    <Button
         android:id="@+id/btn_setting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -80,4 +96,5 @@
         android:text="@string/txt_btn_setting"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"/>
+        -->
 </RelativeLayout>
