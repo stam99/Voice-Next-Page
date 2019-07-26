@@ -31,6 +31,10 @@
             android:name="io.voxhub.accessibility.app.AboutActivity"
             android:label="@string/txt_btn_about" >
         </activity>
+        <activity
+            android:name="io.voxhub.accessibility.app.HelpActivity"
+            android:label="@string/txt_btn_help" >
+        </activity>
     </application>
 
 </manifest>

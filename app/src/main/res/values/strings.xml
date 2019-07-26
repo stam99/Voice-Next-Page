@@ -18,6 +18,9 @@
     <string name="port_title">Port: </string>
     <string name="txt_btn_overlay">Enable Overlay Permissions</string>
     <string name="hover_text">hovertext</string>
+    <string name="help_title">HELP</string>
+    <string name="commands">Supported Commands</string>
+    <string name="txt_btn_help">Help</string>
    
 
     <string name="setting_lang_title">Choose language</string>

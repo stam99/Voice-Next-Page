@@ -77,10 +77,37 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"/>
 
+  <!-- <Button
+        android:id="@+id/btn_help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="75dp"
+        android:layout_marginRight="75dp"
+        android:enabled="true"
+        android:text="@string/txt_btn_help"
+        android:background="@drawable/button_states"
+        android:layout_toRightOf="@+id/btn_about"
+        android:layout_toLeftOf="@+id/btn_setting"
+        android:layout_alignParentBottom="true"/>
+   -->
+
+   <ImageButton
+        android:id="@+id/btn_help"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:scaleType="fitCenter"
+        android:enabled="true"
+        android:src="@drawable/help"
+        android:background="@android:color/transparent"
+        android:layout_marginRight="15dp"
+        android:layout_toLeftOf="@+id/btn_setting"
+        android:layout_alignParentBottom="true"/>
+
     <ImageButton
         android:id="@+id/btn_setting"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:scaleType="fitCenter"
         android:enabled="true"
         android:src="@drawable/settings_icon"
         android:tint="@drawable/touch_selector"

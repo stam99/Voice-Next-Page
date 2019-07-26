@@ -29,6 +29,7 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
@@ -66,15 +67,17 @@ public class SimpleActivity extends Activity {
     private Button btn_enable;
     private Button btn_overlay;
     private Button btn_about;
+   // private Button btn_help;
+    private ImageButton btn_help;
     private ProgressBar progress;
     private Overlay overlay = null;
     private EditText ed_result;
     private boolean requestListen = false;
     private boolean askedForOverlayPermission;
 
-    private static ServerInfo serverInfo; 
-    private static Recognizer _currentRecognizer;
-    private static ThreadAdapter _currentListener;
+    private /*static*/ ServerInfo serverInfo; 
+    private /*static*/ Recognizer _currentRecognizer;
+    private /*static*/ ThreadAdapter _currentListener;
 
     void init_speechkit(ServerInfo serverInfo){
         SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);
@@ -199,6 +202,25 @@ public class SimpleActivity extends Activity {
         updateOverlayUI();
     }
 
+    boolean VersionUpgraded() {
+        try {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            MyLog.i("current version: [" + version + "]");
+            if (!(pref.getString("currentVersion", version).equals(version))) {
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("currentVersion", version);
+                editor.apply();
+                return true;
+            }
+            else return false;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return false; // should this be set to t or f ???
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.i("onCreate has been entered");
@@ -213,6 +235,8 @@ public class SimpleActivity extends Activity {
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
         btn_overlay = (Button) this.findViewById(R.id.btn_overlay); 
         btn_about = (Button) this.findViewById(R.id.btn_about);
+   //      btn_help = (Button) this.findViewById(R.id.btn_help);
+         btn_help = (ImageButton) this.findViewById(R.id.btn_help);
         progress = (ProgressBar)findViewById(R.id.progress_listening);
         ed_result = (EditText)findViewById(R.id.ed_result);
         /*serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
@@ -223,6 +247,20 @@ public class SimpleActivity extends Activity {
         //init_speechkit(serverInfo);
 
         make_speechkit();
+
+        if (VersionUpgraded())
+            new AlertDialog.Builder(SimpleActivity.this)
+                .setTitle("Re-enable Accessibility Settings")
+                .setMessage("You have recently updated this app. If the service was previously malfunctioning, you may wish to reenable it.")
+                .setPositiveButton("Re-enable", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(
+                            android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("Dismiss", null)
+                .show();
 
         btn_setting.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,11 +301,18 @@ public class SimpleActivity extends Activity {
             }
         });
 
-        
         btn_about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { // Open about page
                 Intent intent = new Intent(SimpleActivity.this, AboutActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btn_help.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { // Open about page
+                Intent intent = new Intent(SimpleActivity.this, HelpActivity.class);
                 startActivity(intent);
             }
         });
@@ -372,7 +417,7 @@ public class SimpleActivity extends Activity {
         super.onResume();
     }
 
-    public static ServerInfo getServerInfo() {
+    public /*static*/ ServerInfo getServerInfo() {
         return serverInfo;
     }
 
@@ -436,6 +481,25 @@ public class SimpleActivity extends Activity {
                 MyLog.i("SimpleActivity spotted center");
                 sendAccessibilityEvent("center");
                 MyLog.i("SimpleActivity sent center");
+            }
+            if (canonical.equals("foreground")) {
+                MyLog.i("SimpleActivity spotted foreground");
+                Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.setAction(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                startActivity(intent);
+                /*Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);*/
+                MyLog.i("SimpleActivity sent foreground");
+            }
+            if (canonical.equals("background")) {
+                MyLog.i("SimpleActivity spotted background");
+                Intent i = new Intent(Intent.ACTION_MAIN);
+                i.addCategory(Intent.CATEGORY_HOME);
+                startActivity(i);
+                MyLog.i("SimpleActivity sent background");
             }
             if (canonical.equals("unknowncommande")) {
                 MyLog.i("SimpleActivity spotted ");

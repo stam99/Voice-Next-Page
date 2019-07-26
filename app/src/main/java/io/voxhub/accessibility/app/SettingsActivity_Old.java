@@ -43,7 +43,7 @@ public class SettingsActivity_Old extends Activity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus) {
-                    SimpleActivity.getServerInfo().setAddr(server.getText().toString());
+                    //SimpleActivity.getServerInfo().setAddr(server.getText().toString());
                 }
             }
         });
@@ -51,7 +51,7 @@ public class SettingsActivity_Old extends Activity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if(!hasFocus) {
-                    SimpleActivity.getServerInfo().setAddr(port.getText().toString());
+                    //SimpleActivity.getServerInfo().setAddr(port.getText().toString());
                 }
             }
         });
@@ -64,8 +64,8 @@ public class SettingsActivity_Old extends Activity {
                 Log.i("SettingsActivity", "reset button clicked");
                 server.setText("silvius-server.voxhub.io"); // Hard coded
                 port.setText("8022");
-                SimpleActivity.getServerInfo().setAddr(getResources().getString(R.string.default_server_addr));
-                SimpleActivity.getServerInfo().setPort(Integer.parseInt(getResources().getString(R.string.default_server_port)));
+                //SimpleActivity.getServerInfo().setAddr(getResources().getString(R.string.default_server_addr));
+                //SimpleActivity.getServerInfo().setPort(Integer.parseInt(getResources().getString(R.string.default_server_port)));
             }
         });
         hoverText = (Switch) findViewById(R.id.hoverText);
