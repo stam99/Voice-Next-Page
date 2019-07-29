@@ -220,7 +220,6 @@ public class Recognizer implements RecorderListener{
                     e.printStackTrace();
                 }
 
-
                 if (serverStatus.isReady()){
                     handelReady("Ok");
                     handelStatus(SpeechKit.Status.READY);
@@ -249,7 +248,7 @@ public class Recognizer implements RecorderListener{
 			}
 		};
 
-        MyLog.d("Initialzized recognizer with server ");
+        MyLog.d("Initialized recognizer with server ");
         MyLog.d(serverInfo.getSpeechServerUrl());
         MyLog.d(serverInfo.getStatusServerUrl());
         ws_client_speech = new WebSocketClient(URI.create(serverInfo.getSpeechServerUrl()),
@@ -261,11 +260,9 @@ public class Recognizer implements RecorderListener{
 		// Initial recorder
 		recorderInstance = new PcmRecorder();
 		recorderInstance.setListener(Recognizer.this);
-
 	}
 		
     public void connect(){
-
         if (! ws_client_status.isConnected()) {
             MyLog.d("Connecting to status server ");
             ws_client_status.connect();
@@ -274,7 +271,6 @@ public class Recognizer implements RecorderListener{
 	public void start(){
         transcription.renew();
         ws_client_speech.connect();
-
 	}
 
 	public void setListener(Listener _listener) {

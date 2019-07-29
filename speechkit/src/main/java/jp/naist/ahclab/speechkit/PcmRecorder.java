@@ -23,8 +23,10 @@ public class PcmRecorder implements Runnable {
 		android.os.Process.setThreadPriority(
             android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
-		bufferSize = AudioRecord.getMinBufferSize(frequency,
-                AudioFormat.CHANNEL_IN_MONO, audioEncoding);
+		bufferSize = Math.max(
+		    AudioRecord.getMinBufferSize(frequency,
+		        AudioFormat.CHANNEL_IN_MONO, audioEncoding),
+		    (frequency * 2) / 4);  // 16-bit samples, 4x per second
 		
 		tempBuffer = new byte[bufferSize];
 		recordInstance = new AudioRecord(
