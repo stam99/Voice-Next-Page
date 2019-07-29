@@ -6,15 +6,22 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.accessibility.AccessibilityManager;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.ScaleAnimation;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewParent;
-import android.view.accessibility.AccessibilityManager;
-import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import jp.naist.ahclab.speechkit.Recognizer;
@@ -22,8 +29,8 @@ import jp.naist.ahclab.speechkit.ServerInfo;
 import jp.naist.ahclab.speechkit.SpeechKit;
 import jp.naist.ahclab.speechkit.view.ListeningDialog;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
@@ -34,7 +41,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
-import android.provider.Settings;
 import android.graphics.Color;
 import android.Manifest;
 import android.net.Uri;
@@ -51,9 +57,6 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.ProgressBar;
 
 public class SimpleActivity extends Activity {
 
@@ -64,6 +67,11 @@ public class SimpleActivity extends Activity {
     private Button btn_start;
    // private Button btn_setting;
     private ImageButton btn_setting;
+    private ImageView connected;
+    private ImageView disconnected;
+    private ImageView noworkers;
+    private ImageView mic;
+    private TextView connection;
     private Button btn_stop;
     private Button btn_enable;
     private Button btn_overlay;
@@ -71,6 +79,7 @@ public class SimpleActivity extends Activity {
    // private Button btn_help;
     private ImageButton btn_help;
     private ProgressBar progress;
+   // private ProgressBar pb;
     private Overlay overlay = null;
     private EditText ed_result;
     private boolean requestListen = false;
@@ -262,13 +271,19 @@ public class SimpleActivity extends Activity {
         btn_start = (Button)findViewById(R.id.btn_start);
         btn_setting = (ImageButton)findViewById(R.id.btn_setting);
    //     btn_setting = (Button)findViewById(R.id.btn_setting);
+        connection = (TextView)findViewById(R.id.connection);
+        connected = (ImageView)findViewById(R.id.connected);
+        disconnected = (ImageView)findViewById(R.id.disconnected);
+        noworkers = (ImageView)findViewById(R.id.noworkers);
+        mic = (ImageView)findViewById(R.id.mic);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
         btn_overlay = (Button) this.findViewById(R.id.btn_overlay); 
         btn_about = (Button) this.findViewById(R.id.btn_about);
    //      btn_help = (Button) this.findViewById(R.id.btn_help);
-         btn_help = (ImageButton) this.findViewById(R.id.btn_help);
+        btn_help = (ImageButton) this.findViewById(R.id.btn_help);
         progress = (ProgressBar)findViewById(R.id.progress_listening);
+   //     pb = (ProgressBar)findViewById(R.id.progressbar);
         ed_result = (EditText)findViewById(R.id.ed_result);
         /*serverInfo.setAddr(this.getResources().getString(R.string.default_server_addr));
         serverInfo.setPort(Integer.parseInt(this.getResources().getString(R.string.default_server_port)));
@@ -309,6 +324,8 @@ public class SimpleActivity extends Activity {
             @Override
             public void onClick(View v) {
                 startListening();
+                btn_stop.setVisibility(View.VISIBLE);
+                
                 if (btn_enable.getVisibility() == View.VISIBLE)
                     new AlertDialog.Builder(SimpleActivity.this)
                         .setTitle("Warning")
@@ -336,6 +353,7 @@ public class SimpleActivity extends Activity {
             @Override
             public void onClick(View v) {
                 stopListening();
+                btn_stop.setVisibility(View.INVISIBLE);
             }
         });
         
@@ -476,16 +494,30 @@ public class SimpleActivity extends Activity {
         @Override
         public void onReady(String reason) {
             btn_start.setEnabled(true);
-            Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
-                Toast.LENGTH_SHORT).show();
+            MyLog.i("READY connected: [" + connected + "] disconnected: [" + disconnected + "] noworkers: [" + noworkers + "]");
+            if (connected != null)
+                connected.setVisibility(View.VISIBLE);
+            if (disconnected != null)
+                disconnected.setVisibility(View.INVISIBLE);
+            if (noworkers != null)
+                noworkers.setVisibility(View.INVISIBLE);
+            //Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
+                //Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onNotReady(String reason) {
             btn_start.setEnabled(false);
-            Toast.makeText(getApplicationContext(),
-                "Server connected, but not ready, reason: "+reason,
-                Toast.LENGTH_SHORT).show();
+            MyLog.i("NOT READY connected: [" + connected + "] disconnected: [" + disconnected + "] noworkers: [" + noworkers + "]");
+            if (connected != null)
+                connected.setVisibility(View.INVISIBLE);
+            if (disconnected != null)
+                disconnected.setVisibility(View.INVISIBLE);
+            if (noworkers != null)
+                noworkers.setVisibility(View.VISIBLE);
+            //Toast.makeText(getApplicationContext(),
+                //"Server connected, but not ready, reason: "+reason,
+                //Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -508,6 +540,7 @@ public class SimpleActivity extends Activity {
                 MyLog.i("SimpleActivity spotted stop listening");
                 //onFinish("stop command called");
                 stopListening();
+                btn_stop.setVisibility(View.INVISIBLE);
             }
 
             if(!manager.isEnabled()) { // This will never be called bc start button
@@ -548,6 +581,17 @@ public class SimpleActivity extends Activity {
                     overlay.hide();
                 MyLog.i("SimpleActivity paused listening");
             }
+        }
+
+        @Override
+        public void onNoConnection(String reason) {
+            btn_start.setEnabled(false);
+            if (connected != null)
+                connected.setVisibility(View.INVISIBLE);
+            if (disconnected != null)
+                disconnected.setVisibility(View.VISIBLE);
+            if (noworkers != null)
+                noworkers.setVisibility(View.INVISIBLE);
         }
 
         @Override
@@ -603,6 +647,14 @@ public class SimpleActivity extends Activity {
         public void stop() {
             this.realCode = null;  // no need for synchronized
         }
+
+        @Override
+        public void onNoConnection(final String reason) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    if(realCode != null) realCode.onNoConnection(reason);
+                }
+            });}
 
         @Override
         public void onReady(final String reason) {

@@ -24,6 +24,7 @@ public class Recognizer implements RecorderListener{
 		abstract void onFinish(String reason);
         abstract void onReady(String reason);
         abstract void onNotReady(String reason);
+        abstract void onNoConnection(String reason);
         abstract void onUpdateStatus(SpeechKit.Status status);
 	}
 	protected static final String TAG = "Recognizer";
@@ -39,6 +40,7 @@ public class Recognizer implements RecorderListener{
 	private Handler _handler_Finish;
     private Handler _handle_Ready;
     private Handler _handle_NotReady;
+    private Handler _handle_NoConnection;
     private Handler _handle_Status;
 
     private Transcription transcription;
@@ -73,6 +75,11 @@ public class Recognizer implements RecorderListener{
         Message msg = new Message();
         msg.obj = text;
         _handle_NotReady.sendMessage(msg);
+    }
+    private void handelNoConnection(String text){
+        Message msg = new Message();
+        msg.obj = text;
+        _handle_NoConnection.sendMessage(msg);
     }
     private void handelError(Exception error){
     	Message msg = new Message();
@@ -114,6 +121,14 @@ public class Recognizer implements RecorderListener{
             public void handleMessage(Message msg) {
                 String text = (String)msg.obj;
                 recogListener.onNotReady(text);
+            }
+        };
+
+        _handle_NoConnection = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                String text = (String)msg.obj;
+                recogListener.onNoConnection(text);
             }
         };
 
@@ -239,6 +254,7 @@ public class Recognizer implements RecorderListener{
 			public void onDisconnect(int code, String reason) {
 				// TODO Auto-generated method stub
 				
+				handelNoConnection(reason);
 			}
 			
 			@Override

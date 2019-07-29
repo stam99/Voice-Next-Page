@@ -1,8 +1,10 @@
 package jp.naist.ahclab.speechkit;
+import java.io.DataOutputStream;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
+import android.widget.ProgressBar;
 
 public class PcmRecorder implements Runnable {
 	private volatile boolean isRecording;
@@ -18,6 +20,7 @@ public class PcmRecorder implements Runnable {
 	int bufferSize ;
 	RecorderListener rl;
 	AudioRecord recordInstance ;
+    DataOutputStream output; //*********
 
 	public PcmRecorder() {
 		android.os.Process.setThreadPriority(
@@ -33,6 +36,8 @@ public class PcmRecorder implements Runnable {
 				MediaRecorder.AudioSource.MIC, frequency,
 				AudioFormat.CHANNEL_IN_MONO, audioEncoding, bufferSize);
         Log.i("PcmRecorder", "current state of AudioRecord: " + recordInstance.getState());
+        //ProgressBar pb;
+        //pb = (ProgressBar)findViewById(R.id.progressbar);
 	}
 
 	public void run() {
@@ -63,6 +68,7 @@ public class PcmRecorder implements Runnable {
 //            catch(InterruptedException f){throw new InterruptedException("sleep() interrupted!");}
         }
         Log.i("PcmRecorder", "AudioRecord State after record: " + recordInstance.getState());
+
 		while (this.isRecording && !this.isExiting) {
 			bufferRead = recordInstance.read(tempBuffer, 0, bufferSize);
 			
@@ -78,6 +84,16 @@ public class PcmRecorder implements Runnable {
 			}
 			rl.onRecorderBuffer(tempBuffer);
 			
+    //        double sum = 0;
+    //      	for (int i = 0; i < bufferRead; i++) {
+    //            output.writeShort(tempBuffer [i]);
+    //            sum += tempBuffer [i] * tempBuffer [i];
+    //        }
+    //        if (bufferRead > 0) {
+    //            final double amplitude = sum / bufferRead;
+    //            pb.setProgress((int) Math.sqrt(amplitude));
+    //        }
+
 			/*
 			for (int i=0; i<bufferRead/2; i++)
 			{ // 16bit sample size

@@ -171,7 +171,10 @@ public class WebSocketClient {
                     Log.d(TAG, "Websocket SSL error!", ex);
                     mListener.onDisconnect(0, "SSL");
                     mConnected = false;
-
+                } catch(java.net.ConnectException e) {
+                    Log.d(TAG, "Websocket no connection", e);
+                    mListener.onDisconnect(0, "no connection");
+                    mConnected = false;
                 } catch (Exception ex) {
                     mListener.onError(ex);
                 }
