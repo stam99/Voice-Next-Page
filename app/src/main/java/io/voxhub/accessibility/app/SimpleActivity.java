@@ -222,6 +222,36 @@ public class SimpleActivity extends Activity {
         }
     }
 
+        private void bringApplicationToBackground() {
+            Intent i = new Intent(Intent.ACTION_MAIN);
+            i.addCategory(Intent.CATEGORY_HOME);
+            startActivity(i);
+        }
+        private void bringApplicationToForeground() {
+            ActivityManager am =
+                (ActivityManager) getSystemService(SimpleActivity.this.ACTIVITY_SERVICE);
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                List<ActivityManager.AppTask> tasksList = am.getAppTasks();
+                for (ActivityManager.AppTask task : tasksList){
+                  task.moveToFront();
+                }
+            }
+            else{
+                List<ActivityManager.RunningTaskInfo> tasksList =
+                    am.getRunningTasks(Integer.MAX_VALUE);
+                if(!tasksList.isEmpty()){
+                    int nSize = tasksList.size();
+                    for(int i = 0; i < nSize;  i++){
+                        if(tasksList.get(i).topActivity.getPackageName()
+                            .equals(getPackageName())){
+                            
+                            am.moveTaskToFront(tasksList.get(i).id, 0);
+                        }
+                    }
+                }
+            }
+        }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLog.i("onCreate has been entered");
@@ -285,6 +315,20 @@ public class SimpleActivity extends Activity {
                         .setMessage("Accessibility Settings have not been enabled")
                         .setPositiveButton("close", null)
                         .show();
+                SharedPreferences pref = PreferenceManager
+                    .getDefaultSharedPreferences(SimpleActivity.this);
+                if(pref.getBoolean("autoBackground", true)) {
+                    btn_start.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                bringApplicationToBackground();
+                            }
+                        }, 500);
+                    Toast.makeText(getApplicationContext(),
+                        "Please launch e-book reader",
+                        Toast.LENGTH_SHORT).show();
+                }
             }
         });
         
@@ -451,31 +495,6 @@ public class SimpleActivity extends Activity {
             MyLog.i("SimpleActivity has new status: " + status.name());        
         }
 
-        private void bringApplicationToForeground(){
-            ActivityManager am =
-                (ActivityManager) getSystemService(SimpleActivity.this.ACTIVITY_SERVICE);
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                List<ActivityManager.AppTask> tasksList = am.getAppTasks();
-                for (ActivityManager.AppTask task : tasksList){
-                  task.moveToFront();
-                }
-            }
-            else{
-                List<ActivityManager.RunningTaskInfo> tasksList =
-                    am.getRunningTasks(Integer.MAX_VALUE);
-                if(!tasksList.isEmpty()){
-                    int nSize = tasksList.size();
-                    for(int i = 0; i < nSize;  i++){
-                        if(tasksList.get(i).topActivity.getPackageName()
-                            .equals(getPackageName())){
-                            
-                            am.moveTaskToFront(tasksList.get(i).id, 0);
-                        }
-                    }
-                }
-            }
-        }
-
         @Override
         public void onFinalResult(String result) {
             ed_result.setText(result + ".");
@@ -516,21 +535,11 @@ public class SimpleActivity extends Activity {
             if (canonical.equals("foreground")) {
                 MyLog.i("SimpleActivity spotted foreground");
                 bringApplicationToForeground();
-                /*Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                intent.setAction(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_LAUNCHER);
-                startActivity(intent);*/
-                /*Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);*/
                 MyLog.i("SimpleActivity sent foreground");
             }
             if (canonical.equals("background")) {
                 MyLog.i("SimpleActivity spotted background");
-                Intent i = new Intent(Intent.ACTION_MAIN);
-                i.addCategory(Intent.CATEGORY_HOME);
-                startActivity(i);
+                bringApplicationToBackground();
                 MyLog.i("SimpleActivity sent background");
             }
             if (canonical.equals("unknowncommande")) {

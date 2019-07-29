@@ -25,12 +25,26 @@ public class SettingsActivity extends PreferenceActivity {
         editor.apply();
     }
 
+    private void borderChanged(String border) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("border", border);
+        editor.apply();
+    }
+
+    private void autoBackgroundChanged(boolean enabled) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean("autoBackground", enabled);
+        editor.apply();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
         
-        Overlay overlay = null;
+        //Overlay overlay = null;
         final SwitchPreference hovertext = (SwitchPreference) findPreference(this.getResources()
                                            .getString(R.string.hover_text)); 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -59,17 +73,38 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
         
-       // if(overlay.getOverlayExists())
-       //     overlay = Overlay.getInstance();
-       // 
-       // if (hovertext.isChecked()) {
-       //     if(overlay.getOverlayExists())
-       //         overlay.show();
-       // } 
-       // else {
-       //     if(overlay.getOverlayExists())
-       //         overlay.hide();
-       // }
+        final EditTextPreference bordertext = (EditTextPreference)findPreference("border"); 
+
+        bordertext.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                borderChanged((String) newValue);
+                return true;
+            }
+        });
+
+        final SwitchPreference autoBackground = 
+            (SwitchPreference) findPreference("autoBackground"); 
+        autoBackground.setChecked(pref.getBoolean("autoBackground", true));
+        autoBackground
+            .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                autoBackgroundChanged((Boolean) newValue);
+                return true;
+            }
+        });
+
+        //if(overlay.getOverlayExists())
+        //    overlay = Overlay.getInstance();
+        //
+        //if (hovertext.isChecked()) {
+        //    if(overlay.getOverlayExists())
+        //        overlay.show();
+        //} 
+        //else {
+        //    if(overlay.getOverlayExists())
+        //        overlay.hide();
+        //}
 
     }
 }

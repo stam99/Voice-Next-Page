@@ -30,12 +30,18 @@
             app:key="@string/hover_text"
             app:title="Hover Text"/>
 
+        <SwitchPreference
+            app:key="autoBackground"
+            app:title="Auto-Background"
+            app:summary="send app to background upon start."/>
+
         <EditTextPreference
             app:key="border"
             app:title="Border"
             app:summary="Tap to view or edit distance in pixels"
             app:dialogTitle="Tap Distance from Screen Edge"
             app:defaultValue="10"
+            app:digits="0123456789"
             app:inputType="textCapWords"/>
     </PreferenceCategory>
 
