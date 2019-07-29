@@ -30,6 +30,8 @@ import jp.naist.ahclab.speechkit.SpeechKit;
 import jp.naist.ahclab.speechkit.view.ListeningDialog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import android.accessibilityservice.AccessibilityService;
@@ -67,10 +69,9 @@ public class SimpleActivity extends Activity {
     private Button btn_start;
    // private Button btn_setting;
     private ImageButton btn_setting;
-    private ImageView connected;
-    private ImageView disconnected;
-    private ImageView noworkers;
-    private ImageView mic;
+    private enum ConnectionIcon { DISCONNECTED, CONNECTED, NOWORKERS, COUNT };
+    private Map<ConnectionIcon, ImageView> connectionIcon = new HashMap<ConnectionIcon, ImageView>();
+    private ImageButton mic;
     private TextView connection;
     private Button btn_stop;
     private Button btn_enable;
@@ -197,6 +198,30 @@ public class SimpleActivity extends Activity {
         _currentRecognizer.start();
         makeOverlay();
         progress.setVisibility(View.VISIBLE);
+        btn_stop.setVisibility(View.VISIBLE);
+        
+        if (btn_enable.getVisibility() == View.VISIBLE) {
+            new AlertDialog.Builder(SimpleActivity.this)
+                .setTitle("Warning")
+                .setMessage("Accessibility Settings have not been enabled")
+                .setPositiveButton("close", null)
+                .show();
+            return;
+        }
+        SharedPreferences pref = PreferenceManager
+            .getDefaultSharedPreferences(SimpleActivity.this);
+        if(pref.getBoolean("autoBackground", true)) {
+            btn_start.postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        bringApplicationToBackground();
+                    }
+                }, 500);
+            Toast.makeText(getApplicationContext(),
+                "Please launch e-book reader",
+                Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void stopListening() {
@@ -205,6 +230,7 @@ public class SimpleActivity extends Activity {
         _currentRecognizer.stopRecording();
         makeOverlay();
         progress.setVisibility(View.INVISIBLE);
+        btn_stop.setVisibility(View.INVISIBLE);
     }
 
     private void updateState() {
@@ -231,35 +257,44 @@ public class SimpleActivity extends Activity {
         }
     }
 
-        private void bringApplicationToBackground() {
-            Intent i = new Intent(Intent.ACTION_MAIN);
-            i.addCategory(Intent.CATEGORY_HOME);
-            startActivity(i);
-        }
-        private void bringApplicationToForeground() {
-            ActivityManager am =
-                (ActivityManager) getSystemService(SimpleActivity.this.ACTIVITY_SERVICE);
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                List<ActivityManager.AppTask> tasksList = am.getAppTasks();
-                for (ActivityManager.AppTask task : tasksList){
-                  task.moveToFront();
-                }
+    private void showConnectionIcon(ConnectionIcon icon) {
+        for(ConnectionIcon i : ConnectionIcon.values()) {
+            ImageView image = connectionIcon.get(i);
+            if(image != null) {
+                image.setVisibility(i == icon ? View.VISIBLE : View.INVISIBLE);
             }
-            else{
-                List<ActivityManager.RunningTaskInfo> tasksList =
-                    am.getRunningTasks(Integer.MAX_VALUE);
-                if(!tasksList.isEmpty()){
-                    int nSize = tasksList.size();
-                    for(int i = 0; i < nSize;  i++){
-                        if(tasksList.get(i).topActivity.getPackageName()
-                            .equals(getPackageName())){
-                            
-                            am.moveTaskToFront(tasksList.get(i).id, 0);
-                        }
+        }
+    }
+
+    private void bringApplicationToBackground() {
+        Intent i = new Intent(Intent.ACTION_MAIN);
+        i.addCategory(Intent.CATEGORY_HOME);
+        startActivity(i);
+    }
+    private void bringApplicationToForeground() {
+        ActivityManager am =
+            (ActivityManager) getSystemService(SimpleActivity.this.ACTIVITY_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            List<ActivityManager.AppTask> tasksList = am.getAppTasks();
+            for (ActivityManager.AppTask task : tasksList){
+              task.moveToFront();
+            }
+        }
+        else{
+            List<ActivityManager.RunningTaskInfo> tasksList =
+                am.getRunningTasks(Integer.MAX_VALUE);
+            if(!tasksList.isEmpty()){
+                int nSize = tasksList.size();
+                for(int i = 0; i < nSize;  i++){
+                    if(tasksList.get(i).topActivity.getPackageName()
+                        .equals(getPackageName())){
+                        
+                        am.moveTaskToFront(tasksList.get(i).id, 0);
                     }
                 }
             }
         }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -272,10 +307,10 @@ public class SimpleActivity extends Activity {
         btn_setting = (ImageButton)findViewById(R.id.btn_setting);
    //     btn_setting = (Button)findViewById(R.id.btn_setting);
         connection = (TextView)findViewById(R.id.connection);
-        connected = (ImageView)findViewById(R.id.connected);
-        disconnected = (ImageView)findViewById(R.id.disconnected);
-        noworkers = (ImageView)findViewById(R.id.noworkers);
-        mic = (ImageView)findViewById(R.id.mic);
+        connectionIcon.put(ConnectionIcon.CONNECTED, (ImageView)findViewById(R.id.connected));
+        connectionIcon.put(ConnectionIcon.DISCONNECTED, (ImageView)findViewById(R.id.disconnected));
+        connectionIcon.put(ConnectionIcon.NOWORKERS, (ImageView)findViewById(R.id.noworkers));
+        mic = (ImageButton)findViewById(R.id.mic);
         btn_stop = (Button) this.findViewById(R.id.btn_stop);
         btn_enable = (Button) this.findViewById(R.id.btn_enable);
         btn_overlay = (Button) this.findViewById(R.id.btn_overlay); 
@@ -318,34 +353,21 @@ public class SimpleActivity extends Activity {
             }
         });
 
+        mic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btn_stop.getVisibility() == View.INVISIBLE)
+                    startListening();
+                else stopListening();
+            }
+        });
+        
         // Button start
         MyLog.i("onCreate - buttons made");
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startListening();
-                btn_stop.setVisibility(View.VISIBLE);
-                
-                if (btn_enable.getVisibility() == View.VISIBLE)
-                    new AlertDialog.Builder(SimpleActivity.this)
-                        .setTitle("Warning")
-                        .setMessage("Accessibility Settings have not been enabled")
-                        .setPositiveButton("close", null)
-                        .show();
-                SharedPreferences pref = PreferenceManager
-                    .getDefaultSharedPreferences(SimpleActivity.this);
-                if(pref.getBoolean("autoBackground", true)) {
-                    btn_start.postDelayed(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                bringApplicationToBackground();
-                            }
-                        }, 500);
-                    Toast.makeText(getApplicationContext(),
-                        "Please launch e-book reader",
-                        Toast.LENGTH_SHORT).show();
-                }
             }
         });
         
@@ -353,7 +375,6 @@ public class SimpleActivity extends Activity {
             @Override
             public void onClick(View v) {
                 stopListening();
-                btn_stop.setVisibility(View.INVISIBLE);
             }
         });
         
@@ -494,13 +515,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onReady(String reason) {
             btn_start.setEnabled(true);
-            MyLog.i("READY connected: [" + connected + "] disconnected: [" + disconnected + "] noworkers: [" + noworkers + "]");
-            if (connected != null)
-                connected.setVisibility(View.VISIBLE);
-            if (disconnected != null)
-                disconnected.setVisibility(View.INVISIBLE);
-            if (noworkers != null)
-                noworkers.setVisibility(View.INVISIBLE);
+            showConnectionIcon(ConnectionIcon.CONNECTED);
             //Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
                 //Toast.LENGTH_SHORT).show();
         }
@@ -508,13 +523,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onNotReady(String reason) {
             btn_start.setEnabled(false);
-            MyLog.i("NOT READY connected: [" + connected + "] disconnected: [" + disconnected + "] noworkers: [" + noworkers + "]");
-            if (connected != null)
-                connected.setVisibility(View.INVISIBLE);
-            if (disconnected != null)
-                disconnected.setVisibility(View.INVISIBLE);
-            if (noworkers != null)
-                noworkers.setVisibility(View.VISIBLE);
+            showConnectionIcon(ConnectionIcon.NOWORKERS);
             //Toast.makeText(getApplicationContext(),
                 //"Server connected, but not ready, reason: "+reason,
                 //Toast.LENGTH_SHORT).show();
@@ -540,7 +549,6 @@ public class SimpleActivity extends Activity {
                 MyLog.i("SimpleActivity spotted stop listening");
                 //onFinish("stop command called");
                 stopListening();
-                btn_stop.setVisibility(View.INVISIBLE);
             }
 
             if(!manager.isEnabled()) { // This will never be called bc start button
@@ -586,12 +594,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onNoConnection(String reason) {
             btn_start.setEnabled(false);
-            if (connected != null)
-                connected.setVisibility(View.INVISIBLE);
-            if (disconnected != null)
-                disconnected.setVisibility(View.VISIBLE);
-            if (noworkers != null)
-                noworkers.setVisibility(View.INVISIBLE);
+            showConnectionIcon(ConnectionIcon.DISCONNECTED);
         }
 
         @Override
