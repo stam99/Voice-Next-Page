@@ -1,12 +1,14 @@
 package io.voxhub.accessibility.servicecode;
 //package com.example.android.apis.accessibility;
 
-import android.util.Log;
 import android.accessibilityservice.AccessibilityService;
-import android.view.accessibility.AccessibilityEvent;
-import android.util.DisplayMetrics;
 import android.accessibilityservice.GestureDescription;
+import android.content.SharedPreferences;
 import android.graphics.Path;
+import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.accessibility.AccessibilityEvent;
 
 public class MyAccessibilityService extends AccessibilityService {
     public MyAccessibilityService() {
@@ -38,14 +40,17 @@ public class MyAccessibilityService extends AccessibilityService {
     }
 
     private void doGesture(GestureType type) {
+        SharedPreferences pref = PreferenceManager
+            .getDefaultSharedPreferences(this);
+        int BORDER = Integer.parseInt(pref.getString("border", "10"));
         final DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        final int BORDER = 10;
+        //final int BORDER = 10;
         final int leftX = BORDER;
         final int midX = displayMetrics.widthPixels / 2;
-        final int rightX = displayMetrics.widthPixels - BORDER;
+        final int rightX = displayMetrics.widthPixels - 1 - BORDER;
         final int topY = displayMetrics.heightPixels / 4;
         final int midY = displayMetrics.heightPixels / 2;
-        final int botY = displayMetrics.heightPixels - BORDER;
+        final int botY = displayMetrics.heightPixels - 1 - BORDER;
         final int GESTURE_DURATION = 100;
 
         GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();

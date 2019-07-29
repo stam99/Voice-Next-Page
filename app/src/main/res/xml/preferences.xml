@@ -29,6 +29,14 @@
         <SwitchPreference
             app:key="@string/hover_text"
             app:title="Hover Text"/>
+
+        <EditTextPreference
+            app:key="border"
+            app:title="Border"
+            app:summary="Tap to view or edit distance in pixels"
+            app:dialogTitle="Tap Distance from Screen Edge"
+            app:defaultValue="10"
+            app:inputType="textCapWords"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

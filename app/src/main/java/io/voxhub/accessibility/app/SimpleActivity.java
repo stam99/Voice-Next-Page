@@ -2,6 +2,7 @@ package io.voxhub.accessibility.app;
 import jp.naist.ahclab.speechkit.logs.MyLog;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
@@ -251,7 +252,8 @@ public class SimpleActivity extends Activity {
         if (VersionUpgraded())
             new AlertDialog.Builder(SimpleActivity.this)
                 .setTitle("Re-enable Accessibility Settings")
-                .setMessage("You have recently updated this app. If the service was previously malfunctioning, you may wish to reenable it.")
+                .setMessage("You have recently updated this app. " +
+                    "If the service was previously malfunctioning, you may wish to reenable it.")
                 .setPositiveButton("Re-enable", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent(
@@ -296,7 +298,8 @@ public class SimpleActivity extends Activity {
         btn_enable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                Intent intent = new Intent(android.provider
+                    .Settings.ACTION_ACCESSIBILITY_SETTINGS);
                 startActivity(intent);
             }
         });
@@ -328,7 +331,8 @@ public class SimpleActivity extends Activity {
         btn_overlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, 
+                    Uri.parse("package:" + getPackageName()));
                 startActivityForResult(intent, 8888);
             }
         });
@@ -364,7 +368,8 @@ public class SimpleActivity extends Activity {
     }
 
     public void sendAccessibilityEvent(String string) {
-        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+        AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent
+            .TYPE_ANNOUNCEMENT);
         event.setClassName(getClass().getName());
         event.setPackageName(this.getPackageName());
         event.setEnabled(true);
@@ -434,7 +439,8 @@ public class SimpleActivity extends Activity {
         @Override
         public void onNotReady(String reason) {
             btn_start.setEnabled(false);
-            Toast.makeText(getApplicationContext(),"Server connected, but not ready, reason: "+reason,
+            Toast.makeText(getApplicationContext(),
+                "Server connected, but not ready, reason: "+reason,
                 Toast.LENGTH_SHORT).show();
         }
 
@@ -443,6 +449,31 @@ public class SimpleActivity extends Activity {
           /*  Toast.makeText(getApplicationContext(),"Status changed: " + status.name(),
                     Toast.LENGTH_SHORT).show();*/
             MyLog.i("SimpleActivity has new status: " + status.name());        
+        }
+
+        private void bringApplicationToForeground(){
+            ActivityManager am =
+                (ActivityManager) getSystemService(SimpleActivity.this.ACTIVITY_SERVICE);
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                List<ActivityManager.AppTask> tasksList = am.getAppTasks();
+                for (ActivityManager.AppTask task : tasksList){
+                  task.moveToFront();
+                }
+            }
+            else{
+                List<ActivityManager.RunningTaskInfo> tasksList =
+                    am.getRunningTasks(Integer.MAX_VALUE);
+                if(!tasksList.isEmpty()){
+                    int nSize = tasksList.size();
+                    for(int i = 0; i < nSize;  i++){
+                        if(tasksList.get(i).topActivity.getPackageName()
+                            .equals(getPackageName())){
+                            
+                            am.moveTaskToFront(tasksList.get(i).id, 0);
+                        }
+                    }
+                }
+            }
         }
 
         @Override
@@ -484,11 +515,12 @@ public class SimpleActivity extends Activity {
             }
             if (canonical.equals("foreground")) {
                 MyLog.i("SimpleActivity spotted foreground");
-                Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
+                bringApplicationToForeground();
+                /*Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 intent.setAction(Intent.ACTION_MAIN);
                 intent.addCategory(Intent.CATEGORY_LAUNCHER);
-                startActivity(intent);
+                startActivity(intent);*/
                 /*Intent intent = new Intent(SimpleActivity.this, SimpleActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);*/
