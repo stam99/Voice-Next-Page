@@ -52,6 +52,17 @@
         android:layout_below="@+id/btn_overlay"
         android:src="@drawable/connected"/>
 
+    <TextView
+        android:id="@+id/noWorkersText"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        android:text="(no workers available)"
+        android:layout_below="@+id/btn_overlay"
+        android:layout_toRightOf="@+id/noworkers"/>
+
     <ImageView
         android:id="@+id/disconnected"
         android:scaleType="fitCenter"

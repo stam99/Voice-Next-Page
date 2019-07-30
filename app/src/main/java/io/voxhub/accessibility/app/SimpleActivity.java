@@ -69,10 +69,11 @@ public class SimpleActivity extends Activity {
     private Button btn_start;
    // private Button btn_setting;
     private ImageButton btn_setting;
-    private enum ConnectionIcon { DISCONNECTED, CONNECTED, NOWORKERS, COUNT };
+    private enum ConnectionIcon { DISCONNECTED, CONNECTED, NOWORKERS };
     private Map<ConnectionIcon, ImageView> connectionIcon = new HashMap<ConnectionIcon, ImageView>();
     private ImageButton mic;
     private TextView connection;
+    private TextView noWorkersText;
     private Button btn_stop;
     private Button btn_enable;
     private Button btn_overlay;
@@ -86,15 +87,21 @@ public class SimpleActivity extends Activity {
     private boolean requestListen = false;
     private boolean askedForOverlayPermission;
 
-    private /*static*/ ServerInfo serverInfo; 
-    private /*static*/ Recognizer _currentRecognizer;
-    private /*static*/ ThreadAdapter _currentListener;
+    private static ServerInfo serverInfo; 
+    private static Recognizer _currentRecognizer;
+    private static ThreadAdapter _currentListener;
 
     void init_speechkit(ServerInfo serverInfo){
-        SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);
-        _currentListener = new ThreadAdapter(new SpeechkitCode());
-        _currentRecognizer = _speechKit.createRecognizer(_currentListener);
-        _currentRecognizer.connect();
+        if (_currentRecognizer == null) {
+            SpeechKit _speechKit = SpeechKit.initialize(getApplication().getApplicationContext(), "", "", serverInfo);
+            _currentListener = new ThreadAdapter(new SpeechkitCode());
+            _currentRecognizer = _speechKit.createRecognizer(_currentListener);
+            _currentRecognizer.connect();
+        }
+        else {
+            _currentListener = new ThreadAdapter(new SpeechkitCode());
+            _currentRecognizer.useListener(_currentListener);
+        }
     }
 
     void make_speechkit() {
@@ -158,7 +165,7 @@ public class SimpleActivity extends Activity {
         String newserver = pref.getString("server", "silvius-server.voxhub.io");
         int newport = Integer.parseInt(pref.getString("port", "8022"));
         if (serverInfo == null 
-            || serverInfo.getAddr() != newserver
+            || !serverInfo.getAddr().equals(newserver)
             || serverInfo.getPort() != newport) {
 
             serverInfo = new ServerInfo(newserver, newport);
@@ -193,9 +200,12 @@ public class SimpleActivity extends Activity {
     }
 
     private void startListening() {
+        startListening(true);
+    }
+    private void startListening(boolean askRecognizer) {
         requestListen = true;
         MyLog.i("Setting requestListen to " + requestListen);
-        _currentRecognizer.start();
+        if(askRecognizer) _currentRecognizer.start();
         makeOverlay();
         progress.setVisibility(View.VISIBLE);
         btn_stop.setVisibility(View.VISIBLE);
@@ -264,6 +274,8 @@ public class SimpleActivity extends Activity {
                 image.setVisibility(i == icon ? View.VISIBLE : View.INVISIBLE);
             }
         }
+        noWorkersText.setVisibility(icon == ConnectionIcon.NOWORKERS
+            ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void bringApplicationToBackground() {
@@ -307,6 +319,7 @@ public class SimpleActivity extends Activity {
         btn_setting = (ImageButton)findViewById(R.id.btn_setting);
    //     btn_setting = (Button)findViewById(R.id.btn_setting);
         connection = (TextView)findViewById(R.id.connection);
+        noWorkersText = (TextView)findViewById(R.id.noWorkersText);
         connectionIcon.put(ConnectionIcon.CONNECTED, (ImageView)findViewById(R.id.connected));
         connectionIcon.put(ConnectionIcon.DISCONNECTED, (ImageView)findViewById(R.id.disconnected));
         connectionIcon.put(ConnectionIcon.NOWORKERS, (ImageView)findViewById(R.id.noworkers));
@@ -326,8 +339,27 @@ public class SimpleActivity extends Activity {
         serverInfo.setAppStatus(this.getResources().getString(R.string.default_server_app_status));*/
 
         //init_speechkit(serverInfo);
-
-        make_speechkit();
+        
+        if(_currentRecognizer == null || makeServerInfo()) {
+            make_speechkit();
+        }
+        else {
+            init_speechkit(serverInfo);
+            // inherit old audio thread
+            if(_currentRecognizer.isRecording()) {
+                startListening(false);
+            }
+        }
+        
+        /*if (savedInstanceState != null 
+                && savedInstanceState.getString("stopBtnState") == "invisible") {
+            make_speechkit();
+            MyLog.i("savedInstanceState is not null and stopBtnState is invisible");
+        }
+        else if (btn_stop.getVisibility() == View.INVISIBLE)
+            make_speechkit();
+            MyLog.i("savedInstanceState is null and btn_stop visibility is INVISIBLE");
+        */
 
         if (VersionUpgraded())
             new AlertDialog.Builder(SimpleActivity.this)
@@ -485,6 +517,7 @@ public class SimpleActivity extends Activity {
 
     @Override
     public void onDestroy() {
+        MyLog.i("onDestroy");
        // _currentListener.stop();
        // _currentRecognizer.shutdownThreads();
         destroy_speechkit();
@@ -505,8 +538,13 @@ public class SimpleActivity extends Activity {
         super.onResume();
     }
 
-    public /*static*/ ServerInfo getServerInfo() {
-        return serverInfo;
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(btn_stop.getVisibility() == View.VISIBLE)
+            outState.putString("stopBtnState", "visible");
+        else
+            outState.putString("stopBtnState", "invisible");
     }
 
     //--- inner class ~ SpeechkitCode ---//
@@ -515,6 +553,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onReady(String reason) {
             btn_start.setEnabled(true);
+            mic.setVisibility(View.VISIBLE);
             showConnectionIcon(ConnectionIcon.CONNECTED);
             //Toast.makeText(getApplicationContext(),"Connected to server: "+reason,
                 //Toast.LENGTH_SHORT).show();
@@ -523,6 +562,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onNotReady(String reason) {
             btn_start.setEnabled(false);
+            mic.setVisibility(View.INVISIBLE);
             showConnectionIcon(ConnectionIcon.NOWORKERS);
             //Toast.makeText(getApplicationContext(),
                 //"Server connected, but not ready, reason: "+reason,
@@ -550,6 +590,16 @@ public class SimpleActivity extends Activity {
                 //onFinish("stop command called");
                 stopListening();
             }
+            if (canonical.equals("foreground")) {
+                MyLog.i("SimpleActivity spotted foreground");
+                bringApplicationToForeground();
+                MyLog.i("SimpleActivity sent foreground");
+            }
+            if (canonical.equals("background")) {
+                MyLog.i("SimpleActivity spotted background");
+                bringApplicationToBackground();
+                MyLog.i("SimpleActivity sent background");
+            }
 
             if(!manager.isEnabled()) { // This will never be called bc start button
                 ed_result.setText(result + "...[service not running]");
@@ -573,16 +623,6 @@ public class SimpleActivity extends Activity {
                 sendAccessibilityEvent("center");
                 MyLog.i("SimpleActivity sent center");
             }
-            if (canonical.equals("foreground")) {
-                MyLog.i("SimpleActivity spotted foreground");
-                bringApplicationToForeground();
-                MyLog.i("SimpleActivity sent foreground");
-            }
-            if (canonical.equals("background")) {
-                MyLog.i("SimpleActivity spotted background");
-                bringApplicationToBackground();
-                MyLog.i("SimpleActivity sent background");
-            }
             if (canonical.equals("unknowncommande")) {
                 MyLog.i("SimpleActivity spotted ");
                 if(Overlay.getOverlayExists())
@@ -594,6 +634,7 @@ public class SimpleActivity extends Activity {
         @Override
         public void onNoConnection(String reason) {
             btn_start.setEnabled(false);
+            mic.setVisibility(View.INVISIBLE);
             showConnectionIcon(ConnectionIcon.DISCONNECTED);
         }
 

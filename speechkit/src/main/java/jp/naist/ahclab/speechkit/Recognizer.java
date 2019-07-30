@@ -96,6 +96,11 @@ public class Recognizer implements RecorderListener{
         msg.obj = status;
         _handle_Status.sendMessage(msg);
     }
+
+    public void useListener(Listener listener) {
+		this.recogListener = listener;
+    }
+
 	public Recognizer(ServerInfo serverInfo, Listener _listener) {
 		// TODO Auto-generated constructor stub
 		this.recogListener = _listener;
@@ -345,4 +350,8 @@ public class Recognizer implements RecorderListener{
 		// TODO Auto-generated method stub
 		ws_client_speech.send(buffer);
 	}
+
+    public boolean isRecording() {
+        return recorderInstance.isRecording();
+    }
 }
